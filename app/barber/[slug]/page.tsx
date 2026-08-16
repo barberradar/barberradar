@@ -14,6 +14,27 @@ export default function BarberProfilePage() {
     const searchParams = useSearchParams();
     const params = useParams();
 const slug = String(params.slug);
+const saveBooking = () => {
+  const booking = {
+    barber: slug,
+    service: selectedService,
+    date: selectedDate,
+    time: selectedTime,
+  };
+
+  const existingBookings = JSON.parse(
+    localStorage.getItem("barberRadarBookings") || "[]"
+  );
+
+  const updatedBookings = [...existingBookings, booking];
+
+  localStorage.setItem(
+    "barberRadarBookings",
+    JSON.stringify(updatedBookings)
+  );
+
+  setBookingConfirmed(true);
+};
 
 const barberProfiles = {
   "fade-district": {
@@ -331,20 +352,36 @@ return (
   <p className="mb-3 font-semibold">Choose a Time</p>
 
   <div className="grid grid-cols-3 gap-3">
-    {profile.availability.times.map((time) => (
-      <button
-        key={time}
-        type="button"
-        onClick={() => setSelectedTime(time)}
-        className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
-          selectedTime === time
-            ? "border-red-500 bg-red-500/10"
-            : "border-white/10 bg-black hover:border-white/20"
-        }`}
-      >
-        {time}
-      </button>
-    ))}
+   {profile.availability.times.map((time) => {
+  const savedBookings = JSON.parse(
+    localStorage.getItem("barberRadarBookings") || "[]"
+  );
+
+  const isBooked = savedBookings.some(
+    (booking: any) =>
+      booking.barber === slug &&
+      booking.date === selectedDate &&
+      booking.time === time
+  );
+
+  return (
+    <button
+      key={time}
+      type="button"
+      disabled={isBooked}
+      onClick={() => !isBooked && setSelectedTime(time)}
+      className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+        isBooked
+          ? "cursor-not-allowed border-white/5 bg-white/5 text-zinc-600"
+          : selectedTime === time
+          ? "border-red-500 bg-red-500/10"
+          : "border-white/10 bg-black hover:border-white/20"
+      }`}
+    >
+      {isBooked ? "Booked" : time}
+    </button>
+  );
+})}
   </div>
 </div>
 
@@ -414,7 +451,7 @@ return (
         </button>
 
         <button
-        onClick={() => setBookingConfirmed(true)}
+        onClick={saveBooking}
           className="flex-1 rounded-xl bg-red-600 py-3 font-bold hover:bg-red-500"
         >
           Confirm Booking
