@@ -2,6 +2,7 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createClient } from "../../../utils/supabase/client";
 
 
 export default function BarberProfilePage() {
@@ -14,13 +15,23 @@ export default function BarberProfilePage() {
     const searchParams = useSearchParams();
     const params = useParams();
 const slug = String(params.slug);
-const saveBooking = () => {
+const saveBooking = async () => {
   const booking = {
     barber: slug,
     service: selectedService,
     date: selectedDate,
     time: selectedTime,
   };
+  const supabase = createClient();
+
+const { error } = await supabase
+  .from("bookings")
+  .insert([booking]);
+
+if (error) {
+  console.error("Supabase booking error:", error);
+  return;
+}
 
   const existingBookings = JSON.parse(
     localStorage.getItem("barberRadarBookings") || "[]"
