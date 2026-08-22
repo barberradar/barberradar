@@ -10,19 +10,63 @@ export default function BarberProfilePage() {
     const [selectedService, setSelectedService] = useState("Haircut");
   const [selectedTime, setSelectedTime] = useState("2:00 PM");
     const [selectedDate, setSelectedDate] = useState("Wed 12");
+    const [bookedTimes, setBookedTimes] = useState<string[]>([]);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [bookingConfirmed, setBookingConfirmed] = useState(false);
     const searchParams = useSearchParams();
     const params = useParams();
 const slug = String(params.slug);
-const saveBooking = async () => {
-  const booking = {
-    barber: slug,
-    service: selectedService,
-    date: selectedDate,
-    time: selectedTime,
+useEffect(() => {
+  const loadBookedTimes = async () => {
+    const supabase = createClient();
+
+    const { data, error } = await supabase.rpc("get_booked_times", {
+      p_barber: slug,
+      p_date: selectedDate,
+    });
+
+    if (error) {
+      console.error("Error loading booked times:", error);
+      setBookedTimes([]);
+      return;
+    }
+
+    setBookedTimes(
+      (data || []).map(
+        (row: { booked_time: string }) => row.booked_time
+      )
+    );
   };
-  const supabase = createClient();
+
+  loadBookedTimes();
+}, [slug, selectedDate]);
+const saveBooking = async () => {
+ const supabase = createClient();
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+if (!user) {
+  window.location.href = "/login";
+  return;
+}
+const selectedServiceData = profile.services.find(
+  (service) => service.name === selectedService
+);
+
+const selectedPrice = Number(
+  selectedServiceData?.price.replace("$", "") || 0
+);
+
+const booking = {
+  barber: slug,
+  service: selectedService,
+  date: selectedDate,
+  time: selectedTime,
+  price: selectedPrice,
+  user_id: user.id,
+};
 
 const { error } = await supabase
   .from("bookings")
@@ -30,19 +74,26 @@ const { error } = await supabase
 
 if (error) {
   console.error("Supabase booking error:", error);
+
+  if (error.code === "23505") {
+    alert("That time was just booked by someone else. Please choose another time.");
+
+    setBookedTimes((current) => [
+      ...new Set([...current, selectedTime]),
+    ]);
+
+    setShowConfirmation(false);
+    return;
+  }
+
+  alert("Something went wrong while booking. Please try again.");
   return;
 }
 
-  const existingBookings = JSON.parse(
-    localStorage.getItem("barberRadarBookings") || "[]"
-  );
+  setBookedTimes((current) => [
+  ...new Set([...current, selectedTime]),
+]);
 
-  const updatedBookings = [...existingBookings, booking];
-
-  localStorage.setItem(
-    "barberRadarBookings",
-    JSON.stringify(updatedBookings)
-  );
 
   setBookingConfirmed(true);
 };
@@ -364,16 +415,7 @@ return (
 
   <div className="grid grid-cols-3 gap-3">
    {profile.availability.times.map((time) => {
-  const savedBookings = JSON.parse(
-    localStorage.getItem("barberRadarBookings") || "[]"
-  );
-
-  const isBooked = savedBookings.some(
-    (booking: any) =>
-      booking.barber === slug &&
-      booking.date === selectedDate &&
-      booking.time === time
-  );
+  const isBooked = bookedTimes.includes(time);
 
   return (
     <button

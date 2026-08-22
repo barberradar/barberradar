@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClient } from "../../utils/supabase/client";
 
 type Booking = {
+  id: number;
   barber: string;
   service: string;
   date: string;
@@ -11,32 +13,62 @@ type Booking = {
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const signOut = async () => {
+  const supabase = createClient();
+
+  await supabase.auth.signOut();
+
+  window.location.href = "/login";
+};
 
   useEffect(() => {
-    const savedBookings = JSON.parse(
-      localStorage.getItem("barberRadarBookings") || "[]"
-    );
+  const loadBookings = async () => {
+    const supabase = createClient();
 
-    setBookings(savedBookings);
-  }, []);
-useEffect(() => {
-  const savedBookings = JSON.parse(
-    localStorage.getItem("barberRadarBookings") || "[]"
-  );
+    const {
+  data: { user },
+} = await supabase.auth.getUser();
 
-  setBookings(savedBookings);
+if (!user) {
+  window.location.href = "/login";
+  return;
+}
+
+const { data, error } = await supabase
+  .from("bookings")
+  .select("*")
+  .eq("user_id", user.id)
+  .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading bookings:", error);
+      return;
+    }
+
+    setBookings(data || []);
+  };
+
+  loadBookings();
 }, []);
 
-const cancelBooking = (indexToRemove: number) => {
-  const updatedBookings = bookings.filter(
-    (_, index) => index !== indexToRemove
-  );
 
-  setBookings(updatedBookings);
+const cancelBooking = async (indexToRemove: number) => {
+  const bookingToRemove = bookings[indexToRemove];
 
-  localStorage.setItem(
-    "barberRadarBookings",
-    JSON.stringify(updatedBookings)
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("id", bookingToRemove.id);
+
+  if (error) {
+    console.error("Error cancelling booking:", error);
+    return;
+  }
+
+  setBookings(
+    bookings.filter((booking) => booking.id !== bookingToRemove.id)
   );
 };
 
@@ -46,6 +78,21 @@ const cancelBooking = (indexToRemove: number) => {
         <p className="text-sm font-bold uppercase tracking-widest text-red-500">
           BarberRadar
         </p>
+        <div className="mt-6 flex items-center gap-3">
+  <a
+    href="/"
+    className="rounded-xl border border-white/20 px-4 py-2 text-sm font-bold text-white transition hover:border-red-500 hover:text-red-400"
+  >
+    Find a Barber
+  </a>
+
+  <button
+    onClick={signOut}
+    className="rounded-xl border border-red-500/40 px-4 py-2 text-sm font-bold text-red-400 transition hover:bg-red-500 hover:text-white"
+  >
+    Sign Out
+  </button>
+</div>
 
         <h1 className="mt-2 text-4xl font-black">
           My Bookings
