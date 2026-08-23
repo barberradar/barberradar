@@ -17,6 +17,23 @@ export default function BarberProfilePage() {
     const params = useParams();
 const slug = String(params.slug);
 useEffect(() => {
+  const resumeBooking = searchParams.get("resumeBooking");
+
+  if (resumeBooking !== "true") return;
+
+  const service = searchParams.get("service");
+  const date = searchParams.get("date");
+  const time = searchParams.get("time");
+
+  if (service) setSelectedService(service);
+  if (date) setSelectedDate(date);
+  if (time) setSelectedTime(time);
+
+  setShowBooking(true);
+  setShowConfirmation(true);
+}, [searchParams]);
+
+useEffect(() => {
   const loadBookedTimes = async () => {
     const supabase = createClient();
 
@@ -26,7 +43,12 @@ useEffect(() => {
     });
 
     if (error) {
-      console.error("Error loading booked times:", error);
+      console.error("Error loading booked times:", {
+  message: error.message,
+  details: error.details,
+  hint: error.hint,
+  code: error.code,
+});
       setBookedTimes([]);
       return;
     }
@@ -48,7 +70,14 @@ const {
 } = await supabase.auth.getUser();
 
 if (!user) {
-  window.location.href = "/login";
+  const returnTo =
+    `/barber/${slug}` +
+    `?service=${encodeURIComponent(selectedService)}` +
+    `&date=${encodeURIComponent(selectedDate)}` +
+    `&time=${encodeURIComponent(selectedTime)}` +
+    `&resumeBooking=true`;
+
+  window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
   return;
 }
 const selectedServiceData = profile.services.find(
@@ -172,6 +201,14 @@ const bookedBarber = searchParams.get("barber");
 }, [bookedStyle]);   
 return (
     <main className="min-h-screen bg-black text-white">
+      <div className="mx-auto max-w-5xl px-6 pt-6">
+  <a
+    href="/"
+    className="inline-flex rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+  >
+    ← Home
+  </a>
+</div>
       {/* Cover */}
       <div className="h-72 w-full bg-zinc-900"></div>
 

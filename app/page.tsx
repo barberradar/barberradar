@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import NotificationBell from "./components/NotificationBell";
 
 const barbers = [
   {
@@ -56,9 +57,16 @@ return (
             BARBER<span className="text-red-500">RADAR</span>
           </h1>
 
-          <button className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold">
-            Barber Login
-          </button>
+         <div className="flex items-center gap-3">
+  <NotificationBell />
+
+  <button
+  onClick={() => (window.location.href = "/login")}
+  className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold"
+>
+  Barber Login
+</button>
+</div>
         </div>
       </header>
 
@@ -84,6 +92,11 @@ return (
             placeholder="Search by city, ZIP code or hairstyle"
           />
 <button
+  onClick={() =>
+    document.getElementById("barbers")?.scrollIntoView({
+      behavior: "smooth",
+    })
+  }
   className="min-h-12 rounded-xl bg-red-600 px-8 font-bold transition duration-200 hover:scale-[1.02] hover:bg-red-500"
 >
   Find My Barber
@@ -91,7 +104,7 @@ return (
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-24">
+     <section id="barbers" className="mx-auto max-w-6xl px-6 pb-24">
         <div className="mb-8">
           <p className="font-bold uppercase tracking-widest text-red-500">
             Trending near you

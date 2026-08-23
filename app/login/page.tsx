@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const supabase = createClient();
+  const searchParams = useSearchParams();
+const returnTo = searchParams.get("returnTo") || "/bookings";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +45,7 @@ export default function LoginPage() {
       setMessage(error.message);
     } else {
       setMessage("You're signed in!");
-      window.location.href = "/bookings";
+    window.location.href = returnTo;
     }
 
     setLoading(false);

@@ -57,6 +57,10 @@ const updateBookingStatus = async (
 ) => {
   const supabase = createClient();
 
+  const booking = bookings.find(
+    (booking) => booking.id === bookingId
+  );
+
   const { error } = await supabase
     .from("bookings")
     .update({ status: newStatus })
@@ -65,6 +69,25 @@ const updateBookingStatus = async (
   if (error) {
     console.error("Status update error:", error);
     return;
+  }
+
+  if (newStatus === "cancelled" && booking?.user_id) {
+    const { error: notificationError } = await supabase
+      .from("notifications")
+      .insert([
+        {
+          user_id: booking.user_id,
+          type: "booking_cancelled",
+          message: `Your appointment with ${barberName} for ${booking.service} on ${booking.date} at ${booking.time} was cancelled by the barber.`,
+        },
+      ]);
+
+    if (notificationError) {
+      console.error(
+        "Cancellation notification error:",
+        notificationError
+      );
+    }
   }
 
   setBookings((current) =>
@@ -128,6 +151,13 @@ const earnings = activeBookings.reduce(
           BARBERRADAR
         </p>
 
+
+<a
+  href="/"
+  className="inline-flex rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+>
+  ← Home
+</a>
         <div className="mt-4">
           <h1 className="text-4xl font-bold">
             Barber Dashboard
