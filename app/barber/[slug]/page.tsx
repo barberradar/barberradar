@@ -293,14 +293,31 @@ return (
   </div>
 
   <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-    {["2:00 PM", "2:30 PM", "3:00 PM", "4:30 PM"].map((time) => (
-      <button
-        key={time}
-        className="rounded-xl border border-white/10 bg-black px-4 py-3 font-semibold transition hover:border-red-500 hover:bg-red-500/10"
-      >
-        {time}
-      </button>
-    ))}
+ {profile.availability.times.map((time) => {
+  const isBooked = bookedTimes.includes(time);
+
+  return (
+    <button
+      key={time}
+      type="button"
+      disabled={isBooked}
+      onClick={() => {
+        if (isBooked) return;
+
+        setSelectedDate(profile.availability.dates[0]);
+        setSelectedTime(time);
+        setShowBooking(true);
+      }}
+      className={`rounded-xl border px-4 py-3 font-semibold transition ${
+        isBooked
+          ? "cursor-not-allowed border-white/5 bg-white/5 text-zinc-600"
+          : "border-white/10 bg-black hover:border-white/20"
+      }`}
+    >
+      {isBooked ? "Booked" : time}
+    </button>
+  );
+})}
   </div>
   </section>
 {/* Portfolio */}
@@ -351,7 +368,11 @@ return (
 </section>
         {/* Book Button */}
         <button
-  onClick={() => setShowBooking(true)}
+  onClick={() => {
+  setSelectedDate(profile.availability.dates[0]);
+  setSelectedTime(profile.availability.times[0]);
+  setShowBooking(true);
+}}
   className="fixed bottom-8 right-8 rounded-2xl bg-red-600 px-8 py-5 text-lg font-bold"
 >
   Book Now

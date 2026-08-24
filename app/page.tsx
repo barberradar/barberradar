@@ -11,6 +11,7 @@ const barbers = [
     rating: "4.9",
     specialty: "Fades and beard sculpting",
     price: "$35",
+    availableTime: "2:00 PM",
     services: [
   { name: "Haircut", description: "Clean cut, lineup and styling", price: "$35" },
   { name: "Haircut + Beard", description: "Haircut, beard shaping and lineup", price: "$50" },
@@ -24,6 +25,7 @@ const barbers = [
     rating: "4.8",
     specialty: "Lineups and hair designs",
     price: "$30",
+    availableTime: "1:00 PM",
     services: [
   { name: "Haircut", description: "Lineup, styling and finishing", price: "$30" },
   { name: "Hair Design", description: "Custom linework and designs", price: "$45" },
@@ -37,6 +39,7 @@ const barbers = [
     rating: "4.9",
     specialty: "Locs, braids and tapers",
     price: "$40",
+    availableTime: "10:00 AM",
     services: [
   { name: "Haircut", description: "Taper, cleanup and styling", price: "$40" },
   { name: "Loc Maintenance", description: "Loc cleanup and maintenance", price: "$65" },
@@ -186,8 +189,8 @@ return (
       </p>
 
       <p className="text-sm font-semibold text-green-400">
-        🟢 Available Today • 4:30 PM
-      </p>
+  🟢 Available Today
+</p>
     </div>
   </div>
 
