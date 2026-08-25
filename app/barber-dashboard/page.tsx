@@ -51,6 +51,13 @@ useEffect(() => {
 
   loadDashboard();
 }, []);
+const signOut = async () => {
+  const supabase = createClient();
+
+  await supabase.auth.signOut();
+
+  window.location.href = "/";
+};
 const updateBookingStatus = async (
   bookingId: number,
   newStatus: string
@@ -152,12 +159,21 @@ const earnings = activeBookings.reduce(
         </p>
 
 
-<a
-  href="/"
-  className="inline-flex rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
->
-  ← Home
-</a>
+<div className="flex items-center justify-between">
+  <a
+    href="/"
+    className="inline-flex rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white"
+  >
+    ← Home
+  </a>
+
+  <button
+    onClick={signOut}
+    className="rounded-xl border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-500 hover:bg-red-500 hover:text-white"
+  >
+    Log Out
+  </button>
+</div>
         <div className="mt-4">
           <h1 className="text-4xl font-bold">
             Barber Dashboard

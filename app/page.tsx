@@ -64,7 +64,7 @@ return (
   <NotificationBell />
 
   <button
-  onClick={() => (window.location.href = "/login")}
+onClick={() => (window.location.href = "/login?role=barber")}
   className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold"
 >
   Barber Login
