@@ -13,9 +13,62 @@ export default function BarberProfilePage() {
     const [bookedTimes, setBookedTimes] = useState<string[]>([]);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [bookingConfirmed, setBookingConfirmed] = useState(false);
+   const [dbProfile, setDbProfile] = useState<{
+  name: string;
+  location: string | null;
+  specialty: string | null;
+} | null>(null);
+const [dbServices, setDbServices] = useState<
+  {
+    id: number;
+    service_name: string;
+    price: number;
+    description: string | null;
+  }[]
+>([]);
+const [dbAvailability, setDbAvailability] = useState<any[]>([]);
     const searchParams = useSearchParams();
     const params = useParams();
 const slug = String(params.slug);
+useEffect(() => {
+  const loadBarberProfile = async () => {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("barbers")
+    .select("name, location, specialty")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!error && data) {
+      setDbProfile(data);
+    }
+    const { data: servicesData, error: servicesError } = await supabase
+  .from("barber_services")
+  .select("id, service_name, price, description")
+  .eq("barber_slug", slug)
+  .order("id", { ascending: true });
+
+if (!servicesError && servicesData) {
+  setDbServices(servicesData);
+}
+
+const { data: availabilityData, error: availabilityError } = await supabase
+  .from("barber_availability")
+  .select("*")
+  .eq("barber_slug", slug)
+  .eq("is_available", true)
+  .order("id", { ascending: true });
+
+if (availabilityError) {
+  console.error("Barber availability error:", availabilityError);
+} else {
+  setDbAvailability(availabilityData || []);
+}
+  };
+
+  loadBarberProfile();
+}, [slug]);
 useEffect(() => {
   const resumeBooking = searchParams.get("resumeBooking");
 
@@ -184,7 +237,8 @@ const profile =
   barberProfiles[slug as keyof typeof barberProfiles] ||
   barberProfiles["fade-district"];
 
-const profileName = profile.name;
+const profileName = dbProfile?.name || profile.name;
+const profileLocation = dbProfile?.location || profile.city;
 
 const bookedStyle = searchParams.get("style");
 const bookedBarber = searchParams.get("barber");
@@ -198,7 +252,18 @@ const bookedBarber = searchParams.get("barber");
   } else {
     setSelectedService("Haircut");
   }
-}, [bookedStyle]);   
+}, [bookedStyle]); 
+const availabilityByDay = dbAvailability.reduce((groups, slot) => {
+  const day = slot.day;
+
+  if (!groups[day]) {
+    groups[day] = [];
+  }
+
+  groups[day].push(slot);
+
+  return groups;
+}, {} as Record<string, any[]>);  
 return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-5xl px-6 pt-6">
@@ -225,7 +290,7 @@ return (
 </h1>
 
             <p className="mt-2 text-zinc-400">
-             ⭐ {profile.rating} • {profile.city} • ✅ Verified
+⭐ {profile.rating} • {profileLocation} • ✅ Verified
             </p>
           </div>
         </div>
@@ -251,8 +316,8 @@ return (
           <h2 className="text-2xl font-bold">About</h2>
 
           <p className="mt-4 leading-8 text-zinc-400">
-            {profile.specialty}
-          </p>
+  {dbProfile?.specialty || profile.specialty}
+</p>
         </section>
 
         {/* Services */}
@@ -260,19 +325,23 @@ return (
           <h2 className="text-2xl font-bold">Services</h2>
 
           <div className="mt-6 divide-y divide-white/10">
-  {profile.services.map((service) => (
+ {(dbServices.length > 0 ? dbServices : profile.services).map((service) => (
     <div
-      key={service.name}
+      key={"service_name" in service ? service.service_name : service.name}
       className="flex items-center justify-between py-4"
     >
       <div>
-        <p className="font-semibold">{service.name}</p>
+        <p className="font-semibold">
+  {"service_name" in service ? service.service_name : service.name}
+</p>
         <p className="text-sm text-zinc-500">
           {service.description}
         </p>
       </div>
 
-      <span className="font-bold">{service.price}</span>
+     <span className="font-bold">
+  {"service_name" in service ? `$${service.price}` : service.price}
+</span>
     </div>
   ))}
 </div>
@@ -284,7 +353,11 @@ return (
       <p className="text-sm font-bold uppercase tracking-widest text-red-500">
         Availability
       </p>
-      <h2 className="mt-2 text-2xl font-bold">Available Today</h2>
+   <h2 className="mt-2 text-2xl font-bold">
+  {dbAvailability.length > 0
+  ? "Available This Week"
+  : "No Availability"}
+</h2>
     </div>
 
     <span className="text-sm font-semibold text-green-400">
@@ -292,33 +365,48 @@ return (
     </span>
   </div>
 
-  <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
- {profile.availability.times.map((time) => {
-  const isBooked = bookedTimes.includes(time);
+
+
+ <div className="mt-6 space-y-6">
+{Object.entries(availabilityByDay).map(([day, slots]) => {
+  const daySlots = slots as any[];
 
   return (
-    <button
-      key={time}
-      type="button"
-      disabled={isBooked}
-      onClick={() => {
-        if (isBooked) return;
+    <div key={day}>
+      <h3 className="mb-3 text-lg font-semibold">{day}</h3>
 
-        setSelectedDate(profile.availability.dates[0]);
-        setSelectedTime(time);
-        setShowBooking(true);
-      }}
-      className={`rounded-xl border px-4 py-3 font-semibold transition ${
-        isBooked
-          ? "cursor-not-allowed border-white/5 bg-white/5 text-zinc-600"
-          : "border-white/10 bg-black hover:border-white/20"
-      }`}
-    >
-      {isBooked ? "Booked" : time}
-    </button>
-  );
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {daySlots.map((slot) => {
+          const time = slot.time;
+          const isBooked = bookedTimes.includes(time);
+
+          return (
+            <button
+              key={slot.id}
+              type="button"
+              disabled={isBooked}
+              onClick={() => {
+                if (isBooked) return;
+
+                setSelectedDate(day);
+                setSelectedTime(time);
+                setShowBooking(true);
+              }}
+              className={`rounded-xl border px-4 py-3 font-semibold transition ${
+                isBooked
+                  ? "cursor-not-allowed border-white/5 bg-white/5 text-zinc-600"
+                  : "border-white/10 bg-black hover:border-white/20"
+              }`}
+            >
+              {isBooked ? "Booked" : time}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+    );
 })}
-  </div>
+</div>
   </section>
 {/* Portfolio */}
 <section className="mt-8 rounded-3xl border border-white/10 bg-zinc-950 p-8">
@@ -451,20 +539,28 @@ return (
   <p className="mb-3 font-semibold">Choose a Date</p>
 
   <div className="flex gap-3 overflow-x-auto pb-2">
-    {profile.availability.dates.map((date) => (
-      <button
-        key={date}
-        type="button"
-        onClick={() => setSelectedDate(date)}
-        className={`min-w-[84px] rounded-xl border px-4 py-3 font-semibold transition ${
-          selectedDate === date
-            ? "border-red-500 bg-red-500/10"
-            : "border-white/10 bg-black hover:border-white/20"
-        }`}
-      >
-        {date}
-      </button>
-    ))}
+   {Object.keys(availabilityByDay).map((day) => (
+  <button
+    key={day}
+    type="button"
+    onClick={() => {
+      setSelectedDate(day);
+
+      const firstSlot = availabilityByDay[day]?.[0];
+
+      if (firstSlot) {
+        setSelectedTime(firstSlot.time);
+      }
+    }}
+    className={`min-w-[84px] rounded-xl border px-4 py-3 font-semibold transition ${
+      selectedDate === day
+        ? "border-red-500 bg-red-500/10"
+        : "border-white/10 bg-black hover:border-white/20"
+    }`}
+  >
+    {day}
+  </button>
+))}
   </div>
 </div>
 {/* Choose a Time */}
@@ -472,7 +568,8 @@ return (
   <p className="mb-3 font-semibold">Choose a Time</p>
 
   <div className="grid grid-cols-3 gap-3">
-   {profile.availability.times.map((time) => {
+{(availabilityByDay[selectedDate] ?? []).map((slot: any) => {
+  const time = slot.time;
   const isBooked = bookedTimes.includes(time);
 
   return (

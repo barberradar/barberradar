@@ -6,6 +6,22 @@ export default function BarberDashboard() {
     const [barberName, setBarberName] = useState("");
 const [bookings, setBookings] = useState<any[]>([]);
 const [loading, setLoading] = useState(true);
+const [services, setServices] = useState<any[]>([]);
+const [showAddService, setShowAddService] = useState(false);
+const [newServiceName, setNewServiceName] = useState("");
+const [newServicePrice, setNewServicePrice] = useState("");
+const [newServiceDescription, setNewServiceDescription] = useState("");
+const [savingService, setSavingService] = useState(false);
+const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
+const [editServiceName, setEditServiceName] = useState("");
+const [editServicePrice, setEditServicePrice] = useState("");
+const [editServiceDescription, setEditServiceDescription] = useState("");
+const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
+const [availability, setAvailability] = useState<any[]>([]);
+const [newAvailabilityDay, setNewAvailabilityDay] = useState("");
+const [newAvailabilityTime, setNewAvailabilityTime] = useState("");
+const [savingAvailability, setSavingAvailability] = useState(false);
+
 useEffect(() => {
   const loadDashboard = async () => {
     const supabase = createClient();
@@ -32,7 +48,28 @@ useEffect(() => {
     }
 
     setBarberName(barber.name);
+    const { data: serviceData, error: serviceError } = await supabase
+  .from("barber_services")
+  .select("*")
+  .eq("barber_slug", barber.slug)
+  .order("id", { ascending: true });
 
+if (serviceError) {
+  console.error("Barber services error:", serviceError);
+} else {
+  setServices(serviceData || []);
+}
+const { data: availabilityData, error: availabilityError } = await supabase
+  .from("barber_availability")
+  .select("*")
+  .eq("barber_slug", barber.slug)
+  .order("id", { ascending: true });
+
+if (availabilityError) {
+  console.error("Barber availability error:", availabilityError);
+} else {
+  setAvailability(availabilityData || []);
+}
     const { data: bookingData, error: bookingError } = await supabase
       .from("bookings")
       .select("*")
@@ -51,6 +88,192 @@ useEffect(() => {
 
   loadDashboard();
 }, []);
+const addService = async () => {
+  if (!newServiceName.trim() || !newServicePrice.trim()) return;
+
+  setSavingService(true);
+
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    setSavingService(false);
+    return;
+  }
+
+  const { data: barber, error: barberError } = await supabase
+    .from("barbers")
+    .select("slug")
+    .eq("owner_id", user.id)
+    .single();
+
+  if (barberError || !barber) {
+    console.error("Barber lookup error:", barberError);
+    setSavingService(false);
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("barber_services")
+    .insert({
+      barber_slug: barber.slug,
+      service_name: newServiceName.trim(),
+      price: Number(newServicePrice),
+      description: newServiceDescription.trim() || null,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Add service error:", error);
+    setSavingService(false);
+    return;
+  }
+
+  setServices((current) => [...current, data]);
+  setNewServiceName("");
+  setNewServicePrice("");
+  setNewServiceDescription("");
+  setShowAddService(false);
+  setSavingService(false);
+};
+const saveServiceEdit = async () => {
+  if (
+    editingServiceId === null ||
+    !editServiceName.trim() ||
+    !editServicePrice.trim()
+  ) {
+    return;
+  }
+
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("barber_services")
+    .update({
+      service_name: editServiceName.trim(),
+      price: Number(editServicePrice),
+      description: editServiceDescription.trim() || null,
+    })
+    .eq("id", editingServiceId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Edit service error:", error);
+    return;
+  }
+
+  setServices((current) =>
+    current.map((service) =>
+      service.id === editingServiceId ? data : service
+    )
+  );
+
+  setEditingServiceId(null);
+};
+const deleteService = async (serviceId: number) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this service?"
+  );
+
+  if (!confirmed) return;
+
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("barber_services")
+    .delete()
+    .eq("id", serviceId);
+
+  if (error) {
+    console.error("Delete service error:", error);
+    return;
+  }
+
+  setServices((current) =>
+    current.filter((service) => service.id !== serviceId)
+  );
+
+  setEditingServiceId(null);
+};
+const addAvailability = async () => {
+  if (!newAvailabilityDay.trim() || !newAvailabilityTime.trim()) return;
+
+  setSavingAvailability(true);
+
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    setSavingAvailability(false);
+    return;
+  }
+
+  const { data: barber, error: barberError } = await supabase
+    .from("barbers")
+    .select("slug")
+    .eq("owner_id", user.id)
+    .single();
+
+  if (barberError || !barber) {
+    console.error("Availability barber error:", barberError);
+    setSavingAvailability(false);
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("barber_availability")
+    .insert({
+      barber_slug: barber.slug,
+      day: newAvailabilityDay.trim(),
+      time: newAvailabilityTime.trim(),
+      is_available: true,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Add availability error:", error);
+    setSavingAvailability(false);
+    return;
+  }
+
+  setAvailability((current) => [...current, data]);
+
+  setNewAvailabilityDay("");
+  setNewAvailabilityTime("");
+  setSavingAvailability(false);
+};
+const deleteAvailability = async (slotId: number) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to remove this availability?"
+  );
+
+  if (!confirmed) return;
+
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("barber_availability")
+    .delete()
+    .eq("id", slotId);
+
+  if (error) {
+    console.error("Delete availability error:", error);
+    return;
+  }
+
+  setAvailability((current) =>
+    current.filter((slot) => slot.id !== slotId)
+  );
+};
 const signOut = async () => {
   const supabase = createClient();
 
@@ -176,14 +399,20 @@ const earnings = activeBookings.reduce(
 </div>
         <div className="mt-4">
           <h1 className="text-4xl font-bold">
-            Barber Dashboard
-          </h1>
+  Welcome back, {barberName}
+</h1>
 
           <p className="mt-2 text-zinc-400">
             Manage your appointments and business.
           </p>
         </div>
 
+<a
+  href="/barber-profile/edit"
+  className="mt-5 inline-flex rounded-xl border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-500 hover:bg-red-500 hover:text-white"
+>
+  Edit Profile
+</a>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
 
           <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
@@ -208,6 +437,213 @@ const earnings = activeBookings.reduce(
           </div>
 
         </div>
+        <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+  <div className="flex items-center justify-between">
+    <div>
+      <h2 className="text-xl font-bold">Manage Services</h2>
+      <p className="mt-1 text-sm text-zinc-400">
+        Add, edit, or remove the services customers can book.
+      </p>
+    </div>
+   <button
+  onClick={() => setShowAddService(true)}
+  className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white"
+>
+  + Add Service
+</button>
+  </div>
+{showAddService && (
+  <div className="mt-6 rounded-xl border border-zinc-800 bg-black p-4">
+    <div className="grid gap-4">
+      <input
+        value={newServiceName}
+        onChange={(e) => setNewServiceName(e.target.value)}
+        placeholder="Service name"
+        className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+      />
+
+      <input
+        value={newServicePrice}
+        onChange={(e) => setNewServicePrice(e.target.value)}
+        placeholder="Price"
+        type="number"
+        className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+      />
+
+      <input
+        value={newServiceDescription}
+        onChange={(e) => setNewServiceDescription(e.target.value)}
+        placeholder="Description"
+        className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+      />
+
+     <button
+  onClick={addService}
+  disabled={savingService}
+  className="rounded-xl bg-red-500 px-4 py-3 font-semibold text-white disabled:opacity-50"
+>
+  {savingService ? "Saving..." : "Save Service"}
+</button>
+
+
+<button
+  onClick={() => setShowAddService(false)}
+  className="rounded-xl border border-zinc-700 px-4 py-3 font-semibold"
+>
+  Cancel
+</button>
+    </div>
+  </div>
+)}
+  <div className="mt-6 space-y-3">
+    {services.length === 0 ? (
+      <p className="text-zinc-500">No services added yet.</p>
+    ) : (
+      services.map((service) => (
+        <div
+          key={service.id}
+          className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black p-4"
+        >
+          <div>
+            <p className="font-semibold">{service.service_name}</p>
+
+            {service.description && (
+              <p className="mt-1 text-sm text-zinc-400">
+                {service.description}
+              </p>
+            )}
+          </div>
+
+    <div className="flex items-center gap-3">
+  <p className="font-bold">${service.price}</p>
+
+  <button
+    onClick={() => {
+      setEditingServiceId(service.id);
+      setEditServiceName(service.service_name);
+      setEditServicePrice(String(service.price));
+      setEditServiceDescription(service.description || "");
+    }}
+    className="rounded-lg border border-red-500/50 px-3 py-2 text-sm font-semibold text-red-400"
+  >
+    Edit
+  </button>
+</div>
+{editingServiceId === service.id && (
+  <div className="mt-4 grid gap-3 border-t border-zinc-800 pt-4">
+    <input
+      value={editServiceName}
+      onChange={(e) => setEditServiceName(e.target.value)}
+      placeholder="Service name"
+      className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+    />
+
+    <input
+      value={editServicePrice}
+      onChange={(e) => setEditServicePrice(e.target.value)}
+      placeholder="Price"
+      type="number"
+      className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+    />
+
+    <input
+      value={editServiceDescription}
+      onChange={(e) => setEditServiceDescription(e.target.value)}
+      placeholder="Description"
+      className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+    />
+
+<button
+  onClick={saveServiceEdit}
+  className="rounded-xl bg-red-500 px-4 py-3 font-semibold text-white"
+>
+  Save Changes
+</button>
+
+    <button
+      onClick={() => setEditingServiceId(null)}
+      className="rounded-xl border border-zinc-700 px-4 py-3 font-semibold"
+    >
+      Cancel
+    </button>
+
+    <button
+  onClick={() => deleteService(service.id)}
+  className="rounded-xl border border-red-500/60 px-4 py-3 font-semibold text-red-400"
+>
+  Delete Service
+</button>
+  </div>
+)}
+        </div>
+      ))
+    )}
+  </div>
+</section>
+
+<section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+  <div className="flex items-center justify-between">
+    <div>
+      <h2 className="text-xl font-bold">Manage Availability</h2>
+      <p className="mt-1 text-sm text-zinc-400">
+        Add or remove the times customers can book.
+      </p>
+    </div>
+  </div>
+<div className="mt-6 grid gap-3 md:grid-cols-3">
+  <input
+    value={newAvailabilityDay}
+    onChange={(e) => setNewAvailabilityDay(e.target.value)}
+    placeholder="Day, e.g. Monday"
+    className="rounded-xl border border-zinc-800 bg-black px-4 py-3 text-white"
+  />
+
+  <input
+    value={newAvailabilityTime}
+    onChange={(e) => setNewAvailabilityTime(e.target.value)}
+    placeholder="Time, e.g. 2:00 PM"
+    className="rounded-xl border border-zinc-800 bg-black px-4 py-3 text-white"
+  />
+
+  <button
+    onClick={addAvailability}
+    disabled={savingAvailability}
+    className="rounded-xl bg-red-500 px-4 py-3 font-semibold text-white disabled:opacity-50"
+  >
+    {savingAvailability ? "Adding..." : "+ Add Availability"}
+  </button>
+</div>
+  <div className="mt-6 space-y-3">
+    {availability.length === 0 ? (
+      <p className="text-zinc-500">No availability added yet.</p>
+    ) : (
+      availability.map((slot) => (
+        <div
+          key={slot.id}
+          className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black p-4"
+        >
+          <div>
+            <p className="font-semibold">{slot.day}</p>
+            <p className="text-sm text-zinc-400">{slot.time}</p>
+          </div>
+
+         <div className="flex items-center gap-3">
+  <span className="text-sm text-green-400">
+    {slot.is_available ? "Available" : "Unavailable"}
+  </span>
+
+  <button
+    onClick={() => deleteAvailability(slot.id)}
+    className="rounded-lg border border-red-500/60 px-3 py-2 text-sm font-semibold text-red-400"
+  >
+    Remove
+  </button>
+</div>
+        </div>
+      ))
+    )}
+  </div>
+</section>
 
         <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
           <h2 className="text-xl font-bold">
