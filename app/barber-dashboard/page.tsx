@@ -232,6 +232,18 @@ const addAvailability = async () => {
     return;
   }
 
+const duplicateExists = availability.some(
+  (slot) =>
+    slot.day.trim().toLowerCase() === newAvailabilityDay.trim().toLowerCase() &&
+    slot.time.trim().toLowerCase() === newAvailabilityTime.trim().toLowerCase()
+);
+
+if (duplicateExists) {
+  alert("That availability already exists.");
+  setSavingAvailability(false);
+  return;
+}
+
   const { data, error } = await supabase
     .from("barber_availability")
     .insert({
@@ -287,6 +299,18 @@ const saveAvailabilityEdit = async () => {
   ) {
     return;
   }
+
+const duplicateExists = availability.some(
+  (slot) =>
+    slot.id !== editingAvailabilityId &&
+    slot.day.trim().toLowerCase() === editAvailabilityDay.trim().toLowerCase() &&
+    slot.time.trim().toLowerCase() === editAvailabilityTime.trim().toLowerCase()
+);
+
+if (duplicateExists) {
+  alert("That availability already exists.");
+  return;
+}
 
   const supabase = createClient();
 
