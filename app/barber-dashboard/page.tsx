@@ -22,6 +22,10 @@ const [newAvailabilityDay, setNewAvailabilityDay] = useState("");
 const [newAvailabilityTime, setNewAvailabilityTime] = useState("");
 const [savingAvailability, setSavingAvailability] = useState(false);
 
+const [editingAvailabilityId, setEditingAvailabilityId] = useState<number | null>(null);
+const [editAvailabilityDay, setEditAvailabilityDay] = useState("");
+const [editAvailabilityTime, setEditAvailabilityTime] = useState("");
+
 useEffect(() => {
   const loadDashboard = async () => {
     const supabase = createClient();
@@ -274,6 +278,48 @@ const deleteAvailability = async (slotId: number) => {
     current.filter((slot) => slot.id !== slotId)
   );
 };
+
+const saveAvailabilityEdit = async () => {
+  if (
+    editingAvailabilityId === null ||
+    !editAvailabilityDay.trim() ||
+    !editAvailabilityTime.trim()
+  ) {
+    return;
+  }
+
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("barber_availability")
+    .update({
+      day: editAvailabilityDay.trim(),
+      time: editAvailabilityTime.trim(),
+    })
+    .eq("id", editingAvailabilityId);
+
+  if (error) {
+    console.error("Edit availability error:", error);
+    return;
+  }
+
+  setAvailability((current) =>
+    current.map((slot) =>
+      slot.id === editingAvailabilityId
+        ? {
+            ...slot,
+            day: editAvailabilityDay.trim(),
+            time: editAvailabilityTime.trim(),
+          }
+        : slot
+    )
+  );
+
+  setEditingAvailabilityId(null);
+  setEditAvailabilityDay("");
+  setEditAvailabilityTime("");
+};
+
 const signOut = async () => {
   const supabase = createClient();
 
@@ -617,30 +663,83 @@ const earnings = activeBookings.reduce(
     {availability.length === 0 ? (
       <p className="text-zinc-500">No availability added yet.</p>
     ) : (
-      availability.map((slot) => (
-        <div
-          key={slot.id}
-          className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black p-4"
-        >
-          <div>
-            <p className="font-semibold">{slot.day}</p>
-            <p className="text-sm text-zinc-400">{slot.time}</p>
-          </div>
-
-         <div className="flex items-center gap-3">
-  <span className="text-sm text-green-400">
-    {slot.is_available ? "Available" : "Unavailable"}
-  </span>
-
-  <button
-    onClick={() => deleteAvailability(slot.id)}
-    className="rounded-lg border border-red-500/60 px-3 py-2 text-sm font-semibold text-red-400"
+     availability.map((slot) => (
+  <div
+    key={slot.id}
+    className="rounded-xl border border-zinc-800 bg-black p-4"
   >
-    Remove
-  </button>
-</div>
+    {editingAvailabilityId === slot.id ? (
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          value={editAvailabilityDay}
+          onChange={(e) => setEditAvailabilityDay(e.target.value)}
+          placeholder="Day, e.g. Monday"
+          className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+        />
+
+        <input
+          value={editAvailabilityTime}
+          onChange={(e) => setEditAvailabilityTime(e.target.value)}
+          placeholder="Time, e.g. 2:00 PM"
+          className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+        />
+
+        <button
+          type="button"
+          onClick={saveAvailabilityEdit}
+          className="rounded-lg bg-red-500 px-4 py-3 text-sm font-semibold text-white"
+        >
+          Save
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setEditingAvailabilityId(null);
+            setEditAvailabilityDay("");
+            setEditAvailabilityTime("");
+          }}
+          className="rounded-lg border border-zinc-700 px-4 py-3 text-sm font-semibold text-white"
+        >
+          Cancel
+        </button>
+      </div>
+    ) : (
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-semibold">{slot.day}</p>
+          <p className="text-sm text-zinc-400">{slot.time}</p>
         </div>
-      ))
+
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-green-400">
+            {slot.is_available ? "Available" : "Unavailable"}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => {
+              setEditingAvailabilityId(slot.id);
+              setEditAvailabilityDay(slot.day);
+              setEditAvailabilityTime(slot.time);
+            }}
+            className="rounded-lg border border-zinc-700 px-3 py-2 text-sm font-semibold text-white"
+          >
+            Edit
+          </button>
+
+          <button
+            type="button"
+            onClick={() => deleteAvailability(slot.id)}
+            className="rounded-lg border border-red-500/60 px-3 py-2 text-sm font-semibold text-red-400"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+))
     )}
   </div>
 </section>
