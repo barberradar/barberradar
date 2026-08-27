@@ -661,19 +661,61 @@ const earnings = activeBookings.reduce(
     </div>
   </div>
 <div className="mt-6 grid gap-3 md:grid-cols-3">
-  <input
-    value={newAvailabilityDay}
-    onChange={(e) => setNewAvailabilityDay(e.target.value)}
-    placeholder="Day, e.g. Monday"
-    className="rounded-xl border border-zinc-800 bg-black px-4 py-3 text-white"
-  />
+  <select
+  value={newAvailabilityDay}
+  onChange={(e) => setNewAvailabilityDay(e.target.value)}
+  className="rounded-xl border border-zinc-800 bg-black px-4 py-3 text-white"
+>
+  <option value="">Choose a day</option>
+  <option value="Monday">Monday</option>
+  <option value="Tuesday">Tuesday</option>
+  <option value="Wednesday">Wednesday</option>
+  <option value="Thursday">Thursday</option>
+  <option value="Friday">Friday</option>
+  <option value="Saturday">Saturday</option>
+  <option value="Sunday">Sunday</option>
+</select>
 
-  <input
-    value={newAvailabilityTime}
-    onChange={(e) => setNewAvailabilityTime(e.target.value)}
-    placeholder="Time, e.g. 2:00 PM"
-    className="rounded-xl border border-zinc-800 bg-black px-4 py-3 text-white"
-  />
+<select
+  value={newAvailabilityTime}
+  onChange={(e) => setNewAvailabilityTime(e.target.value)}
+  className="rounded-xl border border-zinc-800 bg-black px-4 py-3 text-white"
+>
+  <option value="">Choose a time</option>
+  <option value="7:00 am">7:00 am</option>
+<option value="7:30 am">7:30 am</option>
+  <option value="8:00 am">8:00 am</option>
+  <option value="8:30 am">8:30 am</option>
+  <option value="9:00 am">9:00 am</option>
+  <option value="9:30 am">9:30 am</option>
+  <option value="10:00 am">10:00 am</option>
+  <option value="10:30 am">10:30 am</option>
+  <option value="11:00 am">11:00 am</option>
+  <option value="11:30 am">11:30 am</option>
+  <option value="12:00 pm">12:00 pm</option>
+  <option value="12:30 pm">12:30 pm</option>
+  <option value="1:00 pm">1:00 pm</option>
+  <option value="1:30 pm">1:30 pm</option>
+  <option value="2:00 pm">2:00 pm</option>
+  <option value="2:30 pm">2:30 pm</option>
+  <option value="3:00 pm">3:00 pm</option>
+  <option value="3:30 pm">3:30 pm</option>
+  <option value="4:00 pm">4:00 pm</option>
+  <option value="4:30 pm">4:30 pm</option>
+  <option value="5:00 pm">5:00 pm</option>
+  <option value="5:30 pm">5:30 pm</option>
+  <option value="6:00 pm">6:00 pm</option>
+  <option value="6:30 pm">6:30 pm</option>
+  <option value="7:00 pm">7:00 pm</option>
+  <option value="7:30 pm">7:30 pm</option>
+  <option value="8:00 pm">8:00 pm</option>
+  <option value="8:30 pm">8:30 pm</option>
+  <option value="9:00 pm">9:00 pm</option>
+  <option value="9:30 pm">9:30 pm</option>
+  <option value="10:00 pm">10:00 pm</option>
+  <option value="10:30 pm">10:30 pm</option>
+  <option value="11:00 pm">11:00 pm</option>
+</select>
 
   <button
     onClick={addAvailability}
