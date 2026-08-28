@@ -117,10 +117,11 @@ onClick={() => (window.location.href = "/login?role=barber")}
 
         <div className="grid gap-6 md:grid-cols-3">
           {barbers.map((barber) => (
-            <article
-              key={barber.name}
-              className="rounded-3xl border border-white/10 bg-zinc-950 p-6"
-            >
+         <article
+  key={barber.name}
+  onClick={() => (window.location.href = `/barber/${barber.slug}`)}
+  className="cursor-pointer rounded-3xl border border-white/10 bg-zinc-950 p-6 transition hover:border-white/20"
+>
               <div className="mb-6 flex h-40 items-center justify-center rounded-2xl bg-zinc-900 text-6xl">
                 💈
               </div>
@@ -141,9 +142,15 @@ onClick={() => (window.location.href = "/login?role=barber")}
               <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-5">
                 <p className="font-bold">From {barber.price}</p>
 
-                <button className="rounded-xl bg-red-600 px-5 py-3 text-sm font-bold hover:bg-red-500">
-                  Book Now
-                </button>
+               <button
+  onClick={(e) => {
+    e.stopPropagation();
+    window.location.href = `/barber/${barber.slug}`;
+  }}
+  className="rounded-xl bg-red-600 px-5 py-3 text-sm font-bold hover:bg-red-500"
+>
+  Book Now
+</button>
               </div>
             </article>
           ))}

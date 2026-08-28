@@ -455,15 +455,21 @@ return (
   </div>
 </section>
         {/* Book Button */}
-        <button
+ <button
+  disabled={dbAvailability.length === 0}
   onClick={() => {
-  setSelectedDate(profile.availability.dates[0]);
-  setSelectedTime(profile.availability.times[0]);
-  setShowBooking(true);
-}}
-  className="fixed bottom-8 right-8 rounded-2xl bg-red-600 px-8 py-5 text-lg font-bold"
+    if (dbAvailability.length === 0) return;
+    setSelectedDate(dbAvailability[0]?.day || "");
+    setSelectedTime(dbAvailability[0]?.time || "");
+    setShowBooking(true);
+  }}
+  className={`fixed bottom-8 right-8 rounded-2xl px-8 py-5 text-lg font-bold ${
+    dbAvailability.length === 0
+      ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+      : "bg-red-600 text-white hover:bg-red-500"
+  }`}
 >
-  Book Now
+  {dbAvailability.length === 0 ? "No Availability" : "Book Now"}
 </button>
       </div>
     {showBooking && (
