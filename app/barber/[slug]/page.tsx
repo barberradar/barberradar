@@ -788,9 +788,14 @@ return (
         <button
   type="button"
   onClick={() => {
-    setSelectedPortfolioCut(null);
-    setShowBooking(true);
-  }}
+  if (selectedPortfolioCut.service_name) {
+    setSelectedService(selectedPortfolioCut.service_name);
+  }
+
+  setSelectedPortfolioCut(null);
+  setShowBooking(true);
+}}
+
   className="mt-4 rounded-xl bg-red-500 px-5 py-3 font-semibold text-white hover:bg-red-400"
 >
   Book this look
