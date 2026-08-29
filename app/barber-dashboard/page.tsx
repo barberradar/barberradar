@@ -26,6 +26,11 @@ const [editingAvailabilityId, setEditingAvailabilityId] = useState<number | null
 const [editAvailabilityDay, setEditAvailabilityDay] = useState("");
 const [editAvailabilityTime, setEditAvailabilityTime] = useState("");
 
+const [portfolio, setPortfolio] = useState<any[]>([]);
+const [portfolioTitle, setPortfolioTitle] = useState("");
+const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
+const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
+
 useEffect(() => {
   const loadDashboard = async () => {
     const supabase = createClient();
@@ -74,6 +79,19 @@ if (availabilityError) {
 } else {
   setAvailability(availabilityData || []);
 }
+
+const { data: portfolioData, error: portfolioError } = await supabase
+  .from("barber_portfolio")
+  .select("*")
+  .eq("barber_slug", barber.slug)
+  .order("created_at", { ascending: false });
+
+if (portfolioError) {
+  console.error("Barber portfolio error:", portfolioError);
+} else {
+  setPortfolio(portfolioData || []);
+}
+
     const { data: bookingData, error: bookingError } = await supabase
       .from("bookings")
       .select("*")
@@ -92,6 +110,115 @@ if (availabilityError) {
 
   loadDashboard();
 }, []);
+
+const uploadPortfolioCut = async () => {
+  if (!portfolioFile) return;
+
+  setUploadingPortfolio(true);
+
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    setUploadingPortfolio(false);
+    return;
+  }
+
+  const { data: barber, error: barberError } = await supabase
+    .from("barbers")
+    .select("slug")
+    .eq("owner_id", user.id)
+    .single();
+
+  if (barberError || !barber) {
+    console.error("Portfolio barber error:", barberError);
+    setUploadingPortfolio(false);
+    return;
+  }
+
+  const fileExt = portfolioFile.name.split(".").pop();
+  const fileName = `${barber.slug}/${Date.now()}.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("barber-portfolio")
+    .upload(fileName, portfolioFile);
+
+  if (uploadError) {
+    console.error("Portfolio upload error:", uploadError);
+    setUploadingPortfolio(false);
+    return;
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from("barber-portfolio")
+    .getPublicUrl(fileName);
+
+  const { data: newPortfolioPost, error: portfolioInsertError } =
+    await supabase
+      .from("barber_portfolio")
+      .insert({
+        barber_slug: barber.slug,
+        image_url: publicUrlData.publicUrl,
+        title: portfolioTitle.trim() || null,
+      })
+      .select()
+      .single();
+
+  if (portfolioInsertError) {
+    console.error("Portfolio insert error:", portfolioInsertError);
+    setUploadingPortfolio(false);
+    return;
+  }
+
+  setPortfolio((current) => [newPortfolioPost, ...current]);
+  setPortfolioTitle("");
+  setPortfolioFile(null);
+  setUploadingPortfolio(false);
+};
+const deletePortfolioCut = async (cut: any) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to remove this cut from your portfolio?"
+  );
+
+  if (!confirmed) return;
+
+  const supabase = createClient();
+
+  const storagePath = decodeURIComponent(
+    cut.image_url.split(
+      "/storage/v1/object/public/barber-portfolio/"
+    )[1]
+  );
+
+  if (storagePath) {
+    const { error: storageError } = await supabase.storage
+      .from("barber-portfolio")
+      .remove([storagePath]);
+
+    if (storageError) {
+      console.error("Portfolio photo delete error:", storageError);
+      return;
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("barber_portfolio")
+    .delete()
+    .eq("id", cut.id);
+
+  if (deleteError) {
+    console.error("Portfolio delete error:", deleteError);
+    return;
+  }
+
+  setPortfolio((current) =>
+    current.filter((item) => item.id !== cut.id)
+  );
+};
+
 const addService = async () => {
   if (!newServiceName.trim() || !newServicePrice.trim()) return;
 
@@ -649,6 +776,75 @@ const earnings = activeBookings.reduce(
       ))
     )}
   </div>
+</section>
+
+<section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+  <div>
+    <h2 className="text-xl font-bold">Recent Cuts</h2>
+    <p className="mt-1 text-sm text-zinc-400">
+      Upload your latest work for customers to see.
+    </p>
+  </div>
+
+  <div className="mt-6 grid gap-4 rounded-xl border border-zinc-800 bg-black p-4">
+    <input
+      type="text"
+      value={portfolioTitle}
+      onChange={(e) => setPortfolioTitle(e.target.value)}
+      placeholder="Style name (optional)"
+      className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+    />
+
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => setPortfolioFile(e.target.files?.[0] || null)}
+      className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-300"
+    />
+
+    <button
+      type="button"
+      onClick={uploadPortfolioCut}
+      disabled={!portfolioFile || uploadingPortfolio}
+      className="rounded-xl bg-red-500 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {uploadingPortfolio ? "Uploading..." : "Upload Cut"}
+    </button>
+  </div>
+
+  {portfolio.length === 0 ? (
+    <p className="mt-6 text-sm text-zinc-500">
+      No recent cuts uploaded yet.
+    </p>
+  ) : (
+    <div className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {portfolio.map((cut) => (
+        <div
+          key={cut.id}
+          className="overflow-hidden rounded-xl border border-zinc-800 bg-black"
+        >
+          <img
+            src={cut.image_url}
+            alt={cut.title || "Recent cut"}
+            className="aspect-square w-full object-cover"
+          />
+
+          <div className="p-3">
+            <p className="font-semibold">
+              {cut.title || "Recent Cut"}
+            </p>
+            <button
+  type="button"
+  onClick={() => deletePortfolioCut(cut)}
+  className="mt-3 w-full rounded-lg border border-red-500/50 px-3 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/10"
+>
+  Remove Cut
+</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
 </section>
 
 <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-950 p-6">

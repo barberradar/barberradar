@@ -27,6 +27,8 @@ const [dbServices, setDbServices] = useState<
   }[]
 >([]);
 const [dbAvailability, setDbAvailability] = useState<any[]>([]);
+const [dbPortfolio, setDbPortfolio] = useState<any[]>([]);
+const [selectedPortfolioCut, setSelectedPortfolioCut] = useState<any | null>(null);
     const searchParams = useSearchParams();
     const params = useParams();
 const slug = String(params.slug);
@@ -64,6 +66,17 @@ if (availabilityError) {
   console.error("Barber availability error:", availabilityError);
 } else {
   setDbAvailability(availabilityData || []);
+}
+const { data: portfolioData, error: portfolioError } = await supabase
+  .from("barber_portfolio")
+  .select("*")
+  .eq("barber_slug", slug)
+  .order("created_at", { ascending: false });
+
+if (portfolioError) {
+  console.error("Barber portfolio error:", portfolioError);
+} else {
+  setDbPortfolio(portfolioData || []);
 }
   };
 
@@ -264,6 +277,23 @@ const availabilityByDay = dbAvailability.reduce((groups, slot) => {
 
   return groups;
 }, {} as Record<string, any[]>);  
+
+const getTimeAgo = (dateString: string) => {
+  const now = new Date();
+  const created = new Date(dateString);
+  const diffMs = now.getTime() - created.getTime();
+
+  const minutes = Math.floor(diffMs / 60000);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  if (hours < 24) return `${hours} hr ago`;
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+};
+
 return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-5xl px-6 pt-6">
@@ -422,37 +452,43 @@ return (
     </div>
 
     <span className="text-sm text-zinc-500">
-      6 photos
+      {dbPortfolio.length} {dbPortfolio.length === 1 ? "photo" : "photos"}
     </span>
   </div>
 
-  <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
-    {[
-      "Low Fade",
-      "Taper",
-      "Beard Sculpt",
-      "Burst Fade",
-      "Kids Cut",
-      "Lineup",
-    ].map((style) => (
-      <div
-        key={style}
-        className="group flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-800 via-zinc-900 to-black"
-      >
-        <div className="text-center transition duration-300 group-hover:scale-105">
-          <div className="text-5xl">✂️</div>
+  {dbPortfolio.length === 0 ? (
+    <div className="mt-6 rounded-2xl border border-white/10 bg-black p-8 text-center">
+      <p className="text-sm text-zinc-500">
+        No recent cuts uploaded yet.
+      </p>
+    </div>
+  ) : (
+    <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
+      {dbPortfolio.map((cut) => (
+       <button
+  key={cut.id}
+  type="button"
+  onClick={() => setSelectedPortfolioCut(cut)}
+  className="group overflow-hidden rounded-2xl border border-white/10 bg-black text-left"
+>
+          <img
+            src={cut.image_url}
+            alt={cut.title || "Recent cut"}
+            className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
+          />
 
-          <p className="mt-3 text-sm font-semibold text-zinc-300">
-            {style}
-          </p>
-
-          <p className="mt-1 text-xs text-zinc-500">
-            Photo coming soon
-          </p>
-        </div>
+          <div className="p-4">
+            <p className="text-sm font-semibold text-zinc-200">
+              {cut.title || "Recent Cut"}
+            </p>
+            <p className="mt-1 text-xs text-zinc-500">
+  {getTimeAgo(cut.created_at)}
+</p>
       </div>
-    ))}
-  </div>
+    </button>
+      ))}
+    </div>
+  )}
 </section>
         {/* Book Button */}
  <button
@@ -717,6 +753,53 @@ return (
     </div>
   </div>
 )}
+
+{selectedPortfolioCut && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+    onClick={() => setSelectedPortfolioCut(null)}
+  >
+    <div
+      className="relative w-full max-w-3xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={() => setSelectedPortfolioCut(null)}
+        className="absolute right-3 top-3 z-10 rounded-full bg-black/70 px-4 py-2 text-xl text-white"
+      >
+        ×
+      </button>
+
+      <img
+        src={selectedPortfolioCut.image_url}
+        alt={selectedPortfolioCut.title || "Recent cut"}
+        className="max-h-[85vh] w-full rounded-2xl object-contain"
+      />
+
+      <div className="mt-3 text-center">
+        <p className="font-semibold text-white">
+          {selectedPortfolioCut.title || "Recent Cut"}
+        </p>
+
+        <p className="mt-1 text-sm text-zinc-400">
+          {getTimeAgo(selectedPortfolioCut.created_at)}
+        </p>
+        <button
+  type="button"
+  onClick={() => {
+    setSelectedPortfolioCut(null);
+    setShowBooking(true);
+  }}
+  className="mt-4 rounded-xl bg-red-500 px-5 py-3 font-semibold text-white hover:bg-red-400"
+>
+  Book this look
+</button>
+      </div>
+    </div>
+  </div>
+)}
+
     </main>
   );
 }
