@@ -314,9 +314,12 @@ onClick={() => (window.location.href = "/login?role=barber")}
       </h2>
     </div>
 
-    <button className="text-sm font-semibold text-zinc-400 hover:text-white">
-      View All →
-    </button>
+   <button
+  onClick={() => (window.location.href = "/looks")}
+  className="text-sm font-semibold text-zinc-400 hover:text-white"
+>
+  View All →
+</button>
   </div>
 
   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
