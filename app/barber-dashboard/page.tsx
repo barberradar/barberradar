@@ -28,6 +28,7 @@ const [editAvailabilityTime, setEditAvailabilityTime] = useState("");
 
 const [portfolio, setPortfolio] = useState<any[]>([]);
 const [portfolioTitle, setPortfolioTitle] = useState("");
+const [portfolioService, setPortfolioService] = useState("");
 const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
 const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
 
@@ -163,6 +164,7 @@ const uploadPortfolioCut = async () => {
         barber_slug: barber.slug,
         image_url: publicUrlData.publicUrl,
         title: portfolioTitle.trim() || null,
+        service_name: portfolioService || null,
       })
       .select()
       .single();
@@ -175,6 +177,7 @@ const uploadPortfolioCut = async () => {
 
   setPortfolio((current) => [newPortfolioPost, ...current]);
   setPortfolioTitle("");
+  setPortfolioService("");
   setPortfolioFile(null);
   setUploadingPortfolio(false);
 };
@@ -794,6 +797,23 @@ const earnings = activeBookings.reduce(
       placeholder="Style name (optional)"
       className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
     />
+
+    <select
+  value={portfolioService}
+  onChange={(e) => setPortfolioService(e.target.value)}
+  className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+>
+  <option value="">Choose a service (optional)</option>
+
+  {services.map((service) => (
+    <option
+      key={service.id}
+      value={service.service_name}
+    >
+      {service.service_name}
+    </option>
+  ))}
+</select>
 
     <input
       type="file"
