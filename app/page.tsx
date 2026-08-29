@@ -228,12 +228,21 @@ onClick={() => (window.location.href = "/login?role=barber")}
         </div>
       </section>
 <section className="mx-auto max-w-6xl px-6 py-20">
-  <div className="mb-8">
+ <div className="mb-8 flex items-end justify-between gap-4">
+  <div>
     <p className="font-bold uppercase tracking-widest text-red-500">
       Trending near you
     </p>
     <h2 className="mt-2 text-3xl font-black">Barbers worth booking</h2>
   </div>
+
+  <a
+    href="/barbers"
+    className="text-sm font-bold text-zinc-400 transition hover:text-white"
+  >
+    View All →
+  </a>
+</div>
 
   <div className="grid gap-6 md:grid-cols-3">
     {barbers.map((barber) => (
