@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NotificationBell from "./components/NotificationBell";
+import { createClient } from "@/utils/supabase/client";
 
 const barbers = [
   {
@@ -52,6 +53,68 @@ export default function Home() {
  const [selectedBarber, setSelectedBarber] = useState("");
 const [selectedStyle, setSelectedStyle] = useState("");
   const [showLookBooking, setShowLookBooking] = useState(false);
+  const [dbBarbers, setDbBarbers] = useState<any[]>([]);
+
+useEffect(() => {
+  const loadBarbers = async () => {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("barbers")
+      .select("*");
+
+    if (error) {
+      console.error("Error loading barbers:", error);
+      return;
+    }
+
+const { data: servicesData, error: servicesError } = await supabase
+  .from("barber_services")
+  .select("barber_slug, price");
+
+if (servicesError) {
+  console.error("Error loading barber services:", servicesError);
+}
+
+const { data: availabilityData, error: availabilityError } = await supabase
+  .from("barber_availability")
+  .select("barber_slug, day, time, is_available");
+
+if (availabilityError) {
+  console.error("Error loading barber availability:", availabilityError);
+}
+const today = new Date().toLocaleDateString("en-US", {
+  weekday: "long",
+});
+const barbersWithPrices = (data ?? []).map((barber) => {
+  const barberPrices = (servicesData ?? [])
+    .filter((service) => service.barber_slug === barber.slug)
+    .map((service) => Number(service.price))
+    .filter((price) => !Number.isNaN(price));
+
+  const minPrice =
+    barberPrices.length > 0 ? Math.min(...barberPrices) : null;
+
+  return {
+    ...barber,
+    price: minPrice !== null ? `$${minPrice}` : "",
+  availableToday:
+  (availabilityData ?? []).some(
+    (slot) =>
+      slot.barber_slug === barber.slug &&
+      slot.is_available === true &&
+      slot.day === today
+  ),
+  };
+});
+
+setDbBarbers(barbersWithPrices);
+    console.log("Homepage barbers:", data);
+  };
+
+  loadBarbers();
+}, []);
+
 return (
     <main className="min-h-screen bg-black text-white">
       <header className="border-b border-white/10">
@@ -116,7 +179,7 @@ onClick={() => (window.location.href = "/login?role=barber")}
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {barbers.map((barber) => (
+    {[...barbers, ...dbBarbers].map((barber) => (
          <article
   key={barber.name}
   onClick={() => (window.location.href = `/barber/${barber.slug}`)}
@@ -129,11 +192,19 @@ onClick={() => (window.location.href = "/login?role=barber")}
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h4 className="text-xl font-black">{barber.name}</h4>
-                  <p className="mt-1 text-sm text-zinc-500">{barber.city}</p>
+             <p className="mt-1 text-sm text-zinc-500">
+  {"city" in barber ? barber.city : barber.location}
+</p>
+
+{"availableToday" in barber && barber.availableToday && (
+  <p className="mt-2 text-sm font-semibold text-green-400">
+    🟢 Available Today
+  </p>
+)}
                 </div>
 
                 <span className="rounded-lg bg-yellow-500/10 px-2 py-1 text-sm font-bold text-yellow-400">
-                  ★ {barber.rating}
+              {"rating" in barber ? `★ ${barber.rating}` : "New"}
                 </span>
               </div>
 
@@ -202,7 +273,7 @@ onClick={() => (window.location.href = "/login?role=barber")}
   </div>
 
   <span className="rounded-lg bg-yellow-500/10 px-2 py-1 text-sm font-bold text-yellow-400">
-    ★ {barber.rating}
+  {"rating" in barber ? `★ ${barber.rating}` : "New"}
   </span>
 </div>
         <p className="mt-5 text-zinc-300">{barber.specialty}</p>
