@@ -54,10 +54,23 @@ export default function Home() {
 const [selectedStyle, setSelectedStyle] = useState("");
   const [showLookBooking, setShowLookBooking] = useState(false);
   const [dbBarbers, setDbBarbers] = useState<any[]>([]);
+  const [dbLooks, setDbLooks] = useState<any[]>([]);
 
 useEffect(() => {
   const loadBarbers = async () => {
     const supabase = createClient();
+
+    const { data: looksData, error: looksError } = await supabase
+  .from("barber_portfolio")
+  .select("id, barber_slug, image_url, title, service_name, created_at")
+  .order("created_at", { ascending: false })
+  .limit(3);
+
+if (looksError) {
+  console.error("Error loading homepage looks:", looksError);
+} else {
+  setDbLooks(looksData ?? []);
+}
 
     const { data, error } = await supabase
       .from("barbers")
@@ -323,23 +336,27 @@ onClick={() => (window.location.href = "/login?role=barber")}
   </div>
 
   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-    {[
-      { style: "Low Fade", barber: "Fade District", likes: "2.4k" },
-      { style: "Burst Fade", barber: "The Cut Society", likes: "1.8k" },
-      { style: "Curly Taper", barber: "Crown and Clippers", likes: "1.3k" },
-    ].map((cut) => (
+  {dbLooks.map((cut) => (
       <article
-        key={cut.style}
+    key={cut.id}
       className="group overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 transition-all duration-300 hover:-translate-y-2 hover:border-red-500/40 hover:shadow-2xl hover:shadow-red-500/20"
       >
         <div className="relative flex aspect-square items-center justify-center bg-gradient-to-br from-zinc-900 to-black">
           <div className="absolute right-4 top-4 rounded-full bg-black/70 px-3 py-1 text-xs font-bold backdrop-blur">
-  ❤️ {cut.likes}
+❤️ New
 </div>
-          <div className="text-center">
-            <div className="text-6xl">✂️</div>
-            <p className="mt-3 text-sm text-zinc-500">Photo coming soon</p>
-          </div>
+        {cut.image_url ? (
+  <img
+    src={cut.image_url}
+    alt={cut.title || "Barber look"}
+    className="h-full w-full object-cover"
+  />
+) : (
+  <div className="text-center">
+    <div className="text-6xl">✂️</div>
+    <p className="mt-3 text-sm text-zinc-500">Photo coming soon</p>
+  </div>
+)}
         </div>
 
         <div className="p-5">
@@ -350,10 +367,10 @@ onClick={() => (window.location.href = "/login?role=barber")}
       🔥 Trending
     </div>
 
-    <h3 className="text-xl font-bold">{cut.style}</h3>
+ {cut.title || "Recent Cut"}
 
     <p className="mt-1 text-sm text-zinc-500">
-      {cut.barber}
+  {cut.service_name || "Barber Service"}
     </p>
 
     <div className="mt-3 flex items-center gap-4 text-xs text-zinc-400">
@@ -366,14 +383,14 @@ onClick={() => (window.location.href = "/login?role=barber")}
   </div>
 
   <div className="text-right">
-    <div className="text-lg font-bold">
-      ❤️ {cut.likes}
-    </div>
+ <div className="text-lg font-bold">
+  ❤️ New
+</div>
 
     <button
   onClick={() => {
-    setSelectedBarber(cut.barber);
-    setSelectedStyle(cut.style);
+  setSelectedBarber(cut.barber_slug);
+setSelectedStyle(cut.title);
   setShowLookBooking(true);
   }}
   className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold transition hover:bg-red-500"
