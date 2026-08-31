@@ -52,6 +52,7 @@ const barbers = [
 export default function Home() {
  const [selectedBarber, setSelectedBarber] = useState("");
 const [selectedStyle, setSelectedStyle] = useState("");
+const [selectedService, setSelectedService] = useState("");
   const [showLookBooking, setShowLookBooking] = useState(false);
   const [dbBarbers, setDbBarbers] = useState<any[]>([]);
   const [dbLooks, setDbLooks] = useState<any[]>([]);
@@ -389,9 +390,10 @@ onClick={() => (window.location.href = "/login?role=barber")}
 
     <button
   onClick={() => {
-  setSelectedBarber(cut.barber_slug);
+ setSelectedBarber(cut.barber_slug);
 setSelectedStyle(cut.title);
-  setShowLookBooking(true);
+setSelectedService(cut.service_name || "");
+setShowLookBooking(true);
   }}
   className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold transition hover:bg-red-500"
 >
@@ -434,21 +436,19 @@ setSelectedStyle(cut.title);
 
        <button
   onClick={() => {
-  const barberSlugMap = {
-  "Fade District": "fade-district",
-  "The Cut Society": "the-cut-society",
-  "Crown and Clippers": "crown-and-clippers",
-};
+setShowLookBooking(false);
 
-const selectedBarberSlug =
-  barberSlugMap[selectedBarber as keyof typeof barberSlugMap] ||
-  "fade-district";
+const params = new URLSearchParams();
 
-  setShowLookBooking(false);
+if (selectedStyle) {
+  params.set("style", selectedStyle);
+}
 
-  window.location.href = `/barber/${selectedBarberSlug}?style=${encodeURIComponent(
-    selectedStyle
-  )}&barber=${encodeURIComponent(selectedBarber)}`;
+if (selectedService) {
+  params.set("service", selectedService);
+}
+
+window.location.href = `/barber/${selectedBarber}?${params.toString()}`;
 }}
   className="flex-1 rounded-xl bg-red-600 py-3 font-bold hover:bg-red-500"
 >
