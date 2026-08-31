@@ -185,12 +185,21 @@ onClick={() => (window.location.href = "/login?role=barber")}
       </section>
 
      <section id="barbers" className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="mb-8">
-          <p className="font-bold uppercase tracking-widest text-red-500">
-            Trending near you
-          </p>
-          <h3 className="mt-2 text-3xl font-black">Barbers worth booking</h3>
-        </div>
+     <div className="mb-8 flex items-end justify-between">
+  <div>
+    <p className="font-bold uppercase tracking-widest text-red-500">
+      Trending near you
+    </p>
+    <h3 className="mt-2 text-3xl font-black">Barbers worth booking</h3>
+  </div>
+
+  <a
+    href="/barbers"
+    className="text-sm font-bold text-zinc-400 transition hover:text-white"
+  >
+    View All →
+  </a>
+</div>
 
         <div className="grid gap-6 md:grid-cols-3">
     {[...barbers, ...dbBarbers].map((barber) => (
@@ -241,82 +250,7 @@ onClick={() => (window.location.href = "/login?role=barber")}
           ))}
         </div>
       </section>
-<section className="mx-auto max-w-6xl px-6 py-20">
- <div className="mb-8 flex items-end justify-between gap-4">
-  <div>
-    <p className="font-bold uppercase tracking-widest text-red-500">
-      Trending near you
-    </p>
-    <h2 className="mt-2 text-3xl font-black">Barbers worth booking</h2>
-  </div>
 
-  <a
-    href="/barbers"
-    className="text-sm font-bold text-zinc-400 transition hover:text-white"
-  >
-    View All →
-  </a>
-</div>
-
-  <div className="grid gap-6 md:grid-cols-3">
-    {barbers.map((barber) => (
-      <article
-        key={barber.name}
-      className="rounded-3xl border border-white/10 bg-zinc-950 p-6 transition-all duration-300 hover:-translate-y-2 hover:border-red-500/40 hover:shadow-2xl hover:shadow-red-500/10"
-      >
-      <div className="mb-6 h-40 overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-800 via-zinc-900 to-black">
-  <div className="flex h-full items-center justify-center text-center">
-    <div>
-      <div className="text-6xl">💈</div>
-      <p className="mt-2 text-xs uppercase tracking-widest text-zinc-400">
-        Barber Photo Coming Soon
-      </p>
-    </div>
-  </div>
-</div>
-<div className="flex items-start justify-between gap-4">
-  <div>
-    <div className="flex items-center gap-2">
-      <h3 className="text-xl font-black">{barber.name}</h3>
-
-      <span className="rounded-full bg-blue-600 px-2 py-1 text-xs font-bold text-white">
-        ✓ Verified
-      </span>
-    </div>
-
-    <div className="mt-2 space-y-1">
-      <p className="text-sm text-zinc-500">
-        📍 {barber.city}
-      </p>
-
-      <p className="text-sm font-semibold text-green-400">
-  🟢 Available Today
-</p>
-    </div>
-  </div>
-
-  <span className="rounded-lg bg-yellow-500/10 px-2 py-1 text-sm font-bold text-yellow-400">
-  {"rating" in barber ? `★ ${barber.rating}` : "New"}
-  </span>
-</div>
-        <p className="mt-5 text-zinc-300">{barber.specialty}</p>
-
-        <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-5">
-          <p className="font-bold">From {barber.price}</p>
-
-          <button
-  onClick={() => {
-    window.location.href = `/barber/${barber.slug}`;
-  }}
-  className="rounded-xl bg-red-600 px-5 py-3 text-sm font-bold hover:bg-red-500"
->
-  Book Now
-</button>
-        </div>
-      </article>
-    ))}
-  </div>
-</section>
   <section className="mx-auto max-w-6xl px-6 py-20">
   <div className="mb-8 flex items-end justify-between">
     <div>
