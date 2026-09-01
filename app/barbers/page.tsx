@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 export default function BarbersPage() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const loadBarbers = async () => {
@@ -62,6 +63,18 @@ export default function BarbersPage() {
     loadBarbers();
   }, []);
 
+const filteredBarbers = barbers.filter((barber) => {
+  const term = searchTerm.toLowerCase().trim();
+
+  if (!term) return true;
+
+  return (
+    barber.name?.toLowerCase().includes(term) ||
+    barber.location?.toLowerCase().includes(term) ||
+    barber.specialty?.toLowerCase().includes(term)
+  );
+});
+
   return (
     <main className="min-h-screen bg-black text-white">
       <header className="border-b border-white/10">
@@ -93,11 +106,33 @@ export default function BarbersPage() {
           Find the right barber, compare services and book your next cut.
         </p>
 
-        {loading ? (
-          <p className="mt-10 text-zinc-400">Loading barbers...</p>
-        ) : (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {barbers.map((barber) => (
+        <div className="mt-6">
+  <input
+    type="text"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    placeholder="Search by barber, city, or specialty"
+    className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50"
+  />
+</div>
+
+  {loading ? (
+  <p className="mt-10 text-zinc-400">Loading barbers...</p>
+) : (
+  <>
+    {filteredBarbers.length === 0 && (
+      <div className="mt-10 rounded-2xl border border-white/10 bg-zinc-950 p-8 text-center">
+        <p className="text-lg font-bold text-white">
+          No barbers found
+        </p>
+        <p className="mt-2 text-sm text-zinc-500">
+          Try another barber name, city, or specialty.
+        </p>
+      </div>
+    )}
+
+    <div className="mt-10 grid gap-6 md:grid-cols-3">
+   {filteredBarbers.map((barber) => (
               <article
                 key={barber.slug}
                 onClick={() =>
@@ -148,6 +183,7 @@ export default function BarbersPage() {
               </article>
             ))}
           </div>
+          </>
         )}
       </section>
     </main>
