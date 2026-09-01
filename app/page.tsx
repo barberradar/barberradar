@@ -128,6 +128,13 @@ setDbBarbers(barbersWithPrices);
 
   loadBarbers();
 }, []);
+const homepageBarbers = [
+  ...dbBarbers,
+  ...barbers.filter(
+    (demoBarber) =>
+      !dbBarbers.some((dbBarber) => dbBarber.slug === demoBarber.slug)
+  ),
+].slice(0, 3);
 
 return (
     <main className="min-h-screen bg-black text-white">
@@ -202,7 +209,7 @@ onClick={() => (window.location.href = "/login?role=barber")}
 </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-    {[...barbers, ...dbBarbers].map((barber) => (
+  {homepageBarbers.map((barber) => (
          <article
   key={barber.name}
   onClick={() => (window.location.href = `/barber/${barber.slug}`)}
