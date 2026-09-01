@@ -50,6 +50,7 @@ const barbers = [
 ];
 
 export default function Home() {
+  const [homeSearch, setHomeSearch] = useState("");
  const [selectedBarber, setSelectedBarber] = useState("");
 const [selectedStyle, setSelectedStyle] = useState("");
 const [selectedService, setSelectedService] = useState("");
@@ -174,16 +175,20 @@ onClick={() => (window.location.href = "/login?role=barber")}
         </p>
 
        <div className="mx-auto mt-8 flex max-w-3xl flex-col gap-3 rounded-2xl border border-white/10 bg-zinc-950 p-3 sm:mt-10 sm:flex-row">
-          <input
-            className="h-14 flex-1 rounded-xl bg-zinc-900 px-5 outline-none placeholder:text-zinc-500"
-            placeholder="Search by city, ZIP code or hairstyle"
-          />
+ <input
+  value={homeSearch}
+  onChange={(e) => setHomeSearch(e.target.value)}
+  className="h-14 flex-1 rounded-xl bg-zinc-900 px-5 outline-none placeholder:text-zinc-500"
+  placeholder="Search by city, ZIP code or hairstyle"
+/>
 <button
-  onClick={() =>
-    document.getElementById("barbers")?.scrollIntoView({
-      behavior: "smooth",
-    })
-  }
+  onClick={() => {
+  const term = homeSearch.trim();
+
+  window.location.href = term
+    ? `/barbers?search=${encodeURIComponent(term)}`
+    : "/barbers";
+}}
   className="min-h-12 rounded-xl bg-red-600 px-8 font-bold transition duration-200 hover:scale-[1.02] hover:bg-red-500"
 >
   Find My Barber

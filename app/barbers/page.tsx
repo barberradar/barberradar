@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 export default function BarbersPage() {
@@ -8,6 +9,14 @@ export default function BarbersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [availableOnly, setAvailableOnly] = useState(false);
+  const searchParams = useSearchParams();
+  useEffect(() => {
+  const searchFromUrl = searchParams.get("search");
+
+  if (searchFromUrl) {
+    setSearchTerm(searchFromUrl);
+  }
+}, [searchParams]);
 
   useEffect(() => {
     const loadBarbers = async () => {
