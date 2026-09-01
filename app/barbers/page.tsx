@@ -7,6 +7,7 @@ export default function BarbersPage() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [availableOnly, setAvailableOnly] = useState(false);
 
   useEffect(() => {
     const loadBarbers = async () => {
@@ -66,13 +67,16 @@ export default function BarbersPage() {
 const filteredBarbers = barbers.filter((barber) => {
   const term = searchTerm.toLowerCase().trim();
 
-  if (!term) return true;
-
-  return (
+  const matchesSearch =
+    !term ||
     barber.name?.toLowerCase().includes(term) ||
     barber.location?.toLowerCase().includes(term) ||
-    barber.specialty?.toLowerCase().includes(term)
-  );
+    barber.specialty?.toLowerCase().includes(term);
+
+  const matchesAvailability =
+    !availableOnly || barber.availableToday === true;
+
+  return matchesSearch && matchesAvailability;
 });
 
   return (
@@ -114,6 +118,20 @@ const filteredBarbers = barbers.filter((barber) => {
     placeholder="Search by barber, city, or specialty"
     className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50"
   />
+</div>
+
+<div className="mt-4">
+  <button
+    type="button"
+    onClick={() => setAvailableOnly((current) => !current)}
+    className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+      availableOnly
+        ? "border-green-500 bg-green-500/10 text-green-400"
+        : "border-white/10 text-zinc-400 hover:text-white"
+    }`}
+  >
+    {availableOnly ? "✓ Available Today" : "Available Today"}
+  </button>
 </div>
 
   {loading ? (
