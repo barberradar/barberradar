@@ -74,10 +74,11 @@ if (looksError) {
   setDbLooks(looksData ?? []);
 }
 
-    const { data, error } = await supabase
-      .from("barbers")
-      .select("*");
-
+  const { data, error } = await supabase
+  .from("barbers")
+  .select("*")
+  .not("location", "is", null)
+  .not("specialty", "is", null);
     if (error) {
       console.error("Error loading barbers:", error);
       return;
@@ -129,13 +130,7 @@ setDbBarbers(barbersWithPrices);
 
   loadBarbers();
 }, []);
-const homepageBarbers = [
-  ...dbBarbers,
-  ...barbers.filter(
-    (demoBarber) =>
-      !dbBarbers.some((dbBarber) => dbBarber.slug === demoBarber.slug)
-  ),
-].slice(0, 3);
+const homepageBarbers = dbBarbers.slice(0, 3);
 
 return (
     <main className="min-h-screen bg-black text-white">

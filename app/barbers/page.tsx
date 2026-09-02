@@ -22,9 +22,11 @@ export default function BarbersPage() {
     const loadBarbers = async () => {
       const supabase = createClient();
 
-      const { data: barberData, error: barberError } = await supabase
-        .from("barbers")
-        .select("*");
+     const { data: barberData, error: barberError } = await supabase
+  .from("barbers")
+  .select("*")
+  .not("location", "is", null)
+  .not("specialty", "is", null);
 
       if (barberError) {
         console.error("Error loading barbers:", barberError);
