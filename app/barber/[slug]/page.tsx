@@ -18,6 +18,7 @@ export default function BarberProfilePage() {
   location: string | null;
   specialty: string | null;
 } | null>(null);
+const [profileLoading, setProfileLoading] = useState(true);
 const [dbServices, setDbServices] = useState<
   {
     id: number;
@@ -41,6 +42,7 @@ useEffect(() => {
     .select("name, location, specialty")
       .eq("slug", slug)
       .maybeSingle();
+      console.log("BARBER PROFILE DEBUG:", { slug, data, error });
 
     if (!error && data) {
       setDbProfile(data);
@@ -78,6 +80,7 @@ if (portfolioError) {
 } else {
   setDbPortfolio(portfolioData || []);
 }
+setProfileLoading(false);
   };
 
   loadBarberProfile();
@@ -247,11 +250,10 @@ const barberProfiles = {
 };
 
 const profile =
-  barberProfiles[slug as keyof typeof barberProfiles] ||
-  barberProfiles["fade-district"];
+  barberProfiles[slug as keyof typeof barberProfiles];
 
-const profileName = dbProfile?.name || profile.name;
-const profileLocation = dbProfile?.location || profile.city;
+const profileName = dbProfile?.name || profile?.name || "Barber";
+const profileLocation = dbProfile?.location || profile?.city || "";
 
 const bookedStyle = searchParams.get("style");
 const bookedBarber = searchParams.get("barber");
@@ -294,6 +296,16 @@ const getTimeAgo = (dateString: string) => {
   return `${days} days ago`;
 };
 
+if (profileLoading) {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-zinc-400">Loading barber...</p>
+      </div>
+    </main>
+  );
+}
+
 return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-5xl px-6 pt-6">
@@ -320,7 +332,7 @@ return (
 </h1>
 
             <p className="mt-2 text-zinc-400">
-⭐ {profile.rating} • {profileLocation} • ✅ Verified
+⭐ {profile?.rating || "New"} · {profileLocation} · ✅ Verified
             </p>
           </div>
         </div>
@@ -346,7 +358,7 @@ return (
           <h2 className="text-2xl font-bold">About</h2>
 
           <p className="mt-4 leading-8 text-zinc-400">
-  {dbProfile?.specialty || profile.specialty}
+{dbProfile?.specialty || profile?.specialty || "Barber services"}
 </p>
         </section>
 

@@ -202,7 +202,7 @@ onClick={() => (window.location.href = "/login?role=barber")}
     <p className="font-bold uppercase tracking-widest text-red-500">
       Trending near you
     </p>
-    <h3 className="mt-2 text-3xl font-black">Barbers worth booking</h3>
+  <h3 className="mt-2 whitespace-nowrap text-2xl font-black sm:text-3xl">Barbers worth booking</h3>
   </div>
 
   <a
@@ -269,7 +269,7 @@ onClick={() => (window.location.href = "/login?role=barber")}
       <p className="font-bold uppercase tracking-widest text-red-500">
         🔥 Trending This Week
       </p>
-      <h2 className="mt-2 text-3xl font-black">
+<h2 className="mt-2 whitespace-nowrap text-2xl font-black sm:text-3xl">
         Fresh cuts worth seeing
       </h2>
     </div>
