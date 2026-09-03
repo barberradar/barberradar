@@ -321,17 +321,17 @@ return (
 
       <div className="mx-auto max-w-5xl px-6">
         {/* Header */}
-        <div className="-mt-16 flex items-end gap-6">
-          <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-black bg-zinc-800 text-5xl">
+  <div className="-mt-16 flex items-end gap-3 sm:gap-6">
+ <div className="flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-full border-4 border-black bg-zinc-800 text-5xl">
             💈
           </div>
 
           <div className="pb-4">
-            <h1 className="text-5xl font-black">
+<h1 className="text-4xl font-black sm:text-5xl">
   {bookedBarber || profileName}
 </h1>
 
-            <p className="mt-2 text-zinc-400">
+ <p className="mt-2 whitespace-nowrap text-xs text-zinc-400 sm:text-base">
 ⭐ {profile?.rating || "New"} · {profileLocation} · ✅ Verified
             </p>
           </div>

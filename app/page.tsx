@@ -305,11 +305,13 @@ onClick={() => (window.location.href = "/login?role=barber")}
 <div className="flex items-start justify-between">
 
   <div>
-    <div className="mb-2 inline-flex rounded-full bg-red-600 px-2 py-1 text-[10px] font-bold uppercase tracking-widest">
+  <div className="mb-2 flex items-center gap-2">
+    <span className="inline-flex rounded-full bg-red-600 px-2 py-1 text-[10px] font-bold uppercase">
       🔥 Trending
-    </div>
+    </span>
 
- {cut.title || "Recent Cut"}
+    <span>{cut.title || "Recent Cut"}</span>
+  </div>
 
     <p className="mt-1 text-sm text-zinc-500">
   {cut.service_name || "Barber Service"}
