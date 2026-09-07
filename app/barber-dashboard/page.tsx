@@ -12,6 +12,34 @@ const formatBookingDate = (dateString: string) => {
     day: "numeric",
   });
 };
+const dayOrder: Record<string, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+};
+
+const timeToMinutes = (timeString: string) => {
+  const match = timeString
+    .trim()
+    .toLowerCase()
+    .match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/);
+
+  if (!match) return Number.MAX_SAFE_INTEGER;
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const period = match[3];
+
+  if (period === "pm" && hour !== 12) hour += 12;
+  if (period === "am" && hour === 12) hour = 0;
+
+  return hour * 60 + minute;
+};
+
 export default function BarberDashboard() {
     const [barberName, setBarberName] = useState("");
 const [bookings, setBookings] = useState<any[]>([]);
@@ -955,7 +983,13 @@ const earnings = activeBookings.reduce(
     {availability.length === 0 ? (
       <p className="text-zinc-500">No availability added yet.</p>
     ) : (
-     availability.map((slot) => (
+  [...availability]
+  .sort(
+    (slotA: any, slotB: any) =>
+      ((dayOrder[slotA.day] ?? 7) - (dayOrder[slotB.day] ?? 7)) ||
+      (timeToMinutes(slotA.time) - timeToMinutes(slotB.time))
+  )
+  .map((slot) => (
   <div
     key={slot.id}
     className="rounded-xl border border-zinc-800 bg-black p-4"
