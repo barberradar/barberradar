@@ -4,13 +4,34 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "../../../utils/supabase/client";
 
+const normalizeTime = (value: string) => {
+  const cleaned = value.trim().toLowerCase();
+  const match = cleaned.match(
+    /^(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)?$/
+  );
+
+  if (!match) return cleaned;
+
+  let hour = Number(match[1]);
+  const minute = match[2];
+  let period = match[3];
+
+  if (!period) {
+    period = hour >= 12 ? "pm" : "am";
+    hour = hour % 12 || 12;
+  }
+
+  return `${hour}:${minute} ${period}`;
+};
 
 export default function BarberProfilePage() {
   const [showBooking, setShowBooking] = useState(false);
     const [selectedService, setSelectedService] = useState("Haircut");
   const [selectedTime, setSelectedTime] = useState("2:00 PM");
     const [selectedDate, setSelectedDate] = useState("Wed 12");
-    const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+   const [bookedTimesByDay, setBookedTimesByDay] = useState<
+  Record<string, string[]>
+>({});
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [bookingConfirmed, setBookingConfirmed] = useState(false);
    const [dbProfile, setDbProfile] = useState<{
@@ -102,35 +123,6 @@ useEffect(() => {
   setShowConfirmation(true);
 }, [searchParams]);
 
-useEffect(() => {
-  const loadBookedTimes = async () => {
-    const supabase = createClient();
-
-    const { data, error } = await supabase.rpc("get_booked_times", {
-      p_barber: slug,
-      p_date: selectedDate,
-    });
-
-    if (error) {
-      console.error("Error loading booked times:", {
-  message: error.message,
-  details: error.details,
-  hint: error.hint,
-  code: error.code,
-});
-      setBookedTimes([]);
-      return;
-    }
-
-    setBookedTimes(
-      (data || []).map(
-        (row: { booked_time: string }) => row.booked_time
-      )
-    );
-  };
-
-  loadBookedTimes();
-}, [slug, selectedDate]);
 const saveBooking = async () => {
  const supabase = createClient();
 
@@ -149,12 +141,17 @@ if (!user) {
   window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
   return;
 }
-const selectedServiceData = profile.services.find(
-  (service) => service.name === selectedService
-);
-
+const selectedServiceData = (
+  dbServices.length > 0
+    ? dbServices.map((service) => ({
+        name: service.service_name,
+        description: service.description,
+        price: service.price,
+      }))
+    : profile?.services ?? []
+).find((service) => service.name === selectedService);
 const selectedPrice = Number(
-  selectedServiceData?.price.replace("$", "") || 0
+  String(selectedServiceData?.price ?? 0).replace("$", "")
 );
 
 const booking = {
@@ -176,9 +173,12 @@ if (error) {
   if (error.code === "23505") {
     alert("That time was just booked by someone else. Please choose another time.");
 
-    setBookedTimes((current) => [
-      ...new Set([...current, selectedTime]),
-    ]);
+   setBookedTimesByDay((current) => ({
+  ...current,
+  [selectedDate]: [
+    ...new Set([...(current[selectedDate] ?? []), selectedTime]),
+  ],
+}));
 
     setShowConfirmation(false);
     return;
@@ -188,9 +188,12 @@ if (error) {
   return;
 }
 
-  setBookedTimes((current) => [
-  ...new Set([...current, selectedTime]),
-]);
+ setBookedTimesByDay((current) => ({
+  ...current,
+  [selectedDate]: [
+    ...new Set([...(current[selectedDate] ?? []), selectedTime]),
+  ],
+}));
 
 
   setBookingConfirmed(true);
@@ -267,7 +270,7 @@ const bookedBarber = searchParams.get("barber");
   } else {
     setSelectedService("Haircut");
   }
-}, [bookedStyle]); 
+}, [bookedStyle]);
 const availabilityByDay = dbAvailability.reduce((groups, slot) => {
   const day = slot.day;
 
@@ -278,7 +281,41 @@ const availabilityByDay = dbAvailability.reduce((groups, slot) => {
   groups[day].push(slot);
 
   return groups;
-}, {} as Record<string, any[]>);  
+}, {} as Record<string, any[]>);
+
+useEffect(() => {
+  const loadAllBookedTimes = async () => {
+    const supabase = createClient();
+    const days = Object.keys(availabilityByDay);
+
+    const entries = await Promise.all(
+      days.map(async (day) => {
+        const { data, error } = await supabase.rpc("get_booked_times", {
+          p_barber: slug,
+          p_date: day,
+        });
+
+
+        if (error) {
+          console.error("Error loading booked times:", error);
+          return [day, []] as const;
+        }
+
+        const times = (data ?? []).map(
+          (row: { booked_time: string }) => row.booked_time
+        );
+
+        return [day, times] as const;
+      })
+    );
+
+    setBookedTimesByDay(Object.fromEntries(entries));
+  };
+
+  if (Object.keys(availabilityByDay).length > 0) {
+    loadAllBookedTimes();
+  }
+}, [slug, dbAvailability]);
 
 const getTimeAgo = (dateString: string) => {
   const now = new Date();
@@ -362,30 +399,51 @@ return (
 </p>
         </section>
 
+        <button
+  disabled={dbAvailability.length === 0}
+  onClick={() => {
+    if (dbAvailability.length === 0) return;
+    setSelectedDate(dbAvailability[0]?.day || "");
+    setSelectedTime(dbAvailability[0]?.time || "");
+    setShowBooking(true);
+  }}
+  className={`mt-6 w-full rounded-2xl px-8 py-5 text-lg font-bold ${
+    dbAvailability.length === 0
+      ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+      : "bg-red-600 text-white hover:bg-red-500"
+  }`}
+>
+  {dbAvailability.length === 0 ? "No Availability" : "Book Now"}
+</button>
+
         {/* Services */}
         <section className="mt-8 rounded-3xl border border-white/10 bg-zinc-950 p-8">
           <h2 className="text-2xl font-bold">Services</h2>
 
           <div className="mt-6 divide-y divide-white/10">
- {(dbServices.length > 0 ? dbServices : profile.services).map((service) => (
-    <div
-      key={"service_name" in service ? service.service_name : service.name}
-      className="flex items-center justify-between py-4"
-    >
-      <div>
-        <p className="font-semibold">
-  {"service_name" in service ? service.service_name : service.name}
-</p>
-        <p className="text-sm text-zinc-500">
-          {service.description}
-        </p>
-      </div>
-
-     <span className="font-bold">
-  {"service_name" in service ? `$${service.price}` : service.price}
-</span>
+ {(
+  dbServices.length > 0
+    ? dbServices.map((service) => ({
+        name: service.service_name,
+        description: service.description,
+        price: service.price,
+      }))
+    : profile?.services ?? []
+).map((service) => (
+  <div
+    key={service.name}
+    className="flex items-center justify-between py-4"
+  >
+    <div>
+      <p className="font-semibold">{service.name}</p>
+      <p className="text-sm text-zinc-500">
+        {service.description}
+      </p>
     </div>
-  ))}
+
+    <span className="font-bold">${service.price}</span>
+  </div>
+))}
 </div>
         </section>
 {/* Availability */}
@@ -420,7 +478,9 @@ return (
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {daySlots.map((slot) => {
           const time = slot.time;
-          const isBooked = bookedTimes.includes(time);
+ const isBooked = (bookedTimesByDay[day] ?? []).some(
+  (bookedTime) => normalizeTime(bookedTime) === normalizeTime(time)
+);
 
           return (
             <button
@@ -502,23 +562,8 @@ return (
     </div>
   )}
 </section>
-        {/* Book Button */}
- <button
-  disabled={dbAvailability.length === 0}
-  onClick={() => {
-    if (dbAvailability.length === 0) return;
-    setSelectedDate(dbAvailability[0]?.day || "");
-    setSelectedTime(dbAvailability[0]?.time || "");
-    setShowBooking(true);
-  }}
-  className={`fixed bottom-8 right-8 rounded-2xl px-8 py-5 text-lg font-bold ${
-    dbAvailability.length === 0
-      ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-      : "bg-red-600 text-white hover:bg-red-500"
-  }`}
->
-  {dbAvailability.length === 0 ? "No Availability" : "Book Now"}
-</button>
+
+
       </div>
     {showBooking && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
@@ -556,7 +601,15 @@ return (
   <p className="mb-3 font-semibold">Choose a Service</p>
 
   <div className="space-y-3">
-    {profile.services.map((service) => (
+{(
+  dbServices.length > 0
+    ? dbServices.map((service) => ({
+        name: service.service_name,
+        description: service.description,
+        price: service.price,
+      }))
+    : profile?.services ?? []
+).map((service) => (
       <button
         key={service.name}
         type="button"
@@ -583,7 +636,7 @@ return (
           <span className="font-semibold">{service.name}</span>
         </div>
 
-        <span className="font-bold">{service.price}</span>
+  <span className="font-bold">${service.price}</span>
       </button>
     ))}
   </div>
@@ -624,7 +677,9 @@ return (
   <div className="grid grid-cols-3 gap-3">
 {(availabilityByDay[selectedDate] ?? []).map((slot: any) => {
   const time = slot.time;
-  const isBooked = bookedTimes.includes(time);
+const isBooked = (bookedTimesByDay[selectedDate] ?? []).some(
+  (bookedTime) => normalizeTime(bookedTime) === normalizeTime(time)
+);
 
   return (
     <button
@@ -663,8 +718,8 @@ return (
   Continue
 </button>
 </div>
-          
-     
+
+
 
     </div>
   </div>
