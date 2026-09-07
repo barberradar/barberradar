@@ -24,6 +24,22 @@ const normalizeTime = (value: string) => {
   return `${hour}:${minute} ${period}`;
 };
 
+const timeToMinutes = (timeString: string) => {
+  const normalized = normalizeTime(timeString);
+  const match = normalized.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/);
+
+  if (!match) return Number.MAX_SAFE_INTEGER;
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const period = match[3];
+
+  if (period === "pm" && hour !== 12) hour += 12;
+  if (period === "am" && hour === 12) hour = 0;
+
+  return hour * 60 + minute;
+};
+
 const isPastTimeSlot = (dateString: string, timeString: string) => {
   const normalized = normalizeTime(timeString);
   const match = normalized.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/);
@@ -332,6 +348,10 @@ const day = getNextDateForDay(slot.day);
   }
 
   groups[day].push(slot);
+      groups[day].sort(
+  (slotA: any, slotB: any) =>
+        timeToMinutes(slotA.time) - timeToMinutes(slotB.time)
+    );
 
   return groups;
 }, {} as Record<string, any[]>);
