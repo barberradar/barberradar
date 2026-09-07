@@ -11,7 +11,15 @@ type Booking = {
   time: string;
   status: string;
 };
+const formatBookingDate = (dateString: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
 
+  return new Date(`${dateString}T12:00:00`).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+};
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
 const [notifications, setNotifications] = useState<any[]>([]);
@@ -123,7 +131,11 @@ const cancelBooking = async (indexToRemove: number) => {
 const unreadCount = notifications.filter(
   (notification) => !notification.read
 ).length;
-
+  const activeBookings = bookings.filter(
+    (booking) =>
+      booking.status !== "cancelled" &&
+      booking.status !== "reopened"
+  );
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -199,14 +211,14 @@ const unreadCount = notifications.filter(
         </p>
 
         <div className="mt-8 space-y-4">
-          {bookings.length === 0 ? (
+    {activeBookings.length === 0 ?  (
             <div className="rounded-2xl border border-white/10 bg-zinc-950 p-6">
               <p className="text-zinc-400">
                 You don't have any bookings yet.
               </p>
             </div>
-          ) : (
-            bookings.map((booking, index) => (
+       ) : (
+        activeBookings.map((booking, index) => (
               <div
                 key={index}
                 className="rounded-2xl border border-white/10 bg-zinc-950 p-6"
@@ -232,7 +244,7 @@ const unreadCount = notifications.filter(
 
                   <p>
                     <span className="text-zinc-500">Date:</span>{" "}
-                    {booking.date}
+               {formatBookingDate(booking.date)}
                   </p>
 
                   <p>
