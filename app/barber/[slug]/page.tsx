@@ -23,6 +23,26 @@ const normalizeTime = (value: string) => {
 
   return `${hour}:${minute} ${period}`;
 };
+
+const isPastTimeSlot = (dateString: string, timeString: string) => {
+  const normalized = normalizeTime(timeString);
+  const match = normalized.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/);
+
+  if (!match) return false;
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const period = match[3];
+
+  if (period === "pm" && hour !== 12) hour += 12;
+  if (period === "am" && hour === 12) hour = 0;
+
+  const slotDate = new Date(`${dateString}T00:00:00`);
+  slotDate.setHours(hour, minute, 0, 0);
+
+  return slotDate.getTime() <= Date.now();
+};
+
 const getNextDateForDay = (dayName: string) => {
   const dayNumbers: Record<string, number> = {
     Sunday: 0,
@@ -303,6 +323,9 @@ const bookedBarber = searchParams.get("barber");
 }, [bookedStyle]);
 const availabilityByDay = dbAvailability.reduce((groups, slot) => {
 const day = getNextDateForDay(slot.day);
+    if (isPastTimeSlot(day, slot.time)) {
+      return groups;
+    }
 
   if (!groups[day]) {
     groups[day] = [];
