@@ -521,7 +521,9 @@ return (
 
 
  <div className="mt-6 space-y-6">
-{Object.entries(availabilityByDay).map(([day, slots]) => {
+{Object.entries(availabilityByDay)
+  .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+  .map(([day, slots]) => {
   const daySlots = slots as any[];
 
   return (
@@ -700,8 +702,10 @@ return (
 <div className="mt-6">
   <p className="mb-3 font-semibold">Choose a Date</p>
 
-  <div className="flex gap-3 overflow-x-auto pb-2">
-   {Object.keys(availabilityByDay).map((day) => (
+<div className="flex flex-wrap gap-3 pb-2">
+ {Object.keys(availabilityByDay)
+  .sort((dateA, dateB) => dateA.localeCompare(dateB))
+  .map((day) => (
   <button
     key={day}
     type="button"
