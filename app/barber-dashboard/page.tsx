@@ -587,11 +587,25 @@ const reopenSlot = async (bookingId: number) => {
   )
 );
 };
-const activeBookings = bookings.filter(
-  (booking) =>
-    booking.status !== "cancelled" &&
-    booking.status !== "reopened"
-);
+const activeBookings = bookings
+  .filter(
+    (booking) =>
+      booking.status !== "cancelled" &&
+      booking.status !== "reopened"
+  )
+  .sort((bookingA: any, bookingB: any) => {
+    const dateA = /^\d{4}-\d{2}-\d{2}$/.test(bookingA.date)
+      ? bookingA.date
+      : "9999-12-31";
+    const dateB = /^\d{4}-\d{2}-\d{2}$/.test(bookingB.date)
+      ? bookingB.date
+      : "9999-12-31";
+
+    return (
+      dateA.localeCompare(dateB) ||
+      timeToMinutes(bookingA.time) - timeToMinutes(bookingB.time)
+    );
+  });
 
 const upcomingCount = activeBookings.length;
 const today = new Date();
