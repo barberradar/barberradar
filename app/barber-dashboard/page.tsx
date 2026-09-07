@@ -1089,6 +1089,19 @@ const earnings = activeBookings.reduce(
         <p className="font-bold text-white">
           {booking.service}
         </p>
+        {booking.customer_name && (
+  <div className="mt-2">
+    <p className="font-semibold text-white">
+      Customer: {booking.customer_name}
+    </p>
+
+    {booking.customer_email && (
+      <p className="text-zinc-400">
+        {booking.customer_email}
+      </p>
+    )}
+  </div>
+)}
 
         <p className="mt-2 text-zinc-400">
      Date: {formatBookingDate(booking.date)}

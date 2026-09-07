@@ -227,6 +227,12 @@ const booking = {
   time: selectedTime,
   price: selectedPrice,
   user_id: user.id,
+  customer_name:
+  user.user_metadata?.full_name ||
+  user.user_metadata?.name ||
+  user.email?.split("@")[0] ||
+  "Customer",
+customer_email: user.email || "",
 };
 
 const { error } = await supabase
