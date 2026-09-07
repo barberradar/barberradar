@@ -610,10 +610,9 @@ const activeBookings = bookings
 const upcomingCount = activeBookings.length;
 const today = new Date();
 
-const todayLabel = today.toLocaleDateString("en-US", {
-  weekday: "short",
-  day: "numeric",
-});
+const todayLabel = `${today.getFullYear()}-${String(
+  today.getMonth() + 1
+).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
 const todaysAppointments = activeBookings.filter(
   (booking) => booking.date === todayLabel
