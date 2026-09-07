@@ -20,6 +20,15 @@ const formatBookingDate = (dateString: string) => {
     day: "numeric",
   });
 };
+const timeToMinutes = (time: string) => {
+  const match = time.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+  if (!match) return 0;
+
+  let hours = Number(match[1]) % 12;
+  if (match[3].toLowerCase() === "pm") hours += 12;
+
+  return hours * 60 + Number(match[2]);
+};
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
 const [notifications, setNotifications] = useState<any[]>([]);
@@ -131,11 +140,25 @@ const cancelBooking = async (indexToRemove: number) => {
 const unreadCount = notifications.filter(
   (notification) => !notification.read
 ).length;
-  const activeBookings = bookings.filter(
+const activeBookings = bookings
+  .filter(
     (booking) =>
       booking.status !== "cancelled" &&
       booking.status !== "reopened"
-  );
+  )
+  .sort((bookingA, bookingB) => {
+    const bookingAHasRealDate = /^\d{4}-\d{2}-\d{2}$/.test(bookingA.date);
+    const bookingBHasRealDate = /^\d{4}-\d{2}-\d{2}$/.test(bookingB.date);
+
+    if (!bookingAHasRealDate && !bookingBHasRealDate) return 0;
+    if (!bookingAHasRealDate) return 1;
+    if (!bookingBHasRealDate) return -1;
+
+    return (
+      bookingA.date.localeCompare(bookingB.date) ||
+      timeToMinutes(bookingA.time) - timeToMinutes(bookingB.time)
+    );
+  });
 
   return (
     <main className="min-h-screen bg-black text-white">
