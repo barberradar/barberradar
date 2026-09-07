@@ -620,10 +620,12 @@ const todaysAppointments = activeBookings.filter(
 
 const todayCount = todaysAppointments.length;
 
-const earnings = activeBookings.reduce(
-  (total, booking) => total + Number(booking.price || 0),
-  0
-);
+const earnings = activeBookings
+  .filter((booking) => booking.status === "confirmed")
+  .reduce(
+    (total, booking) => total + Number(booking.price || 0),
+    0
+  );
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-6xl px-6 py-12">
