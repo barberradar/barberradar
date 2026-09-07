@@ -23,7 +23,37 @@ const normalizeTime = (value: string) => {
 
   return `${hour}:${minute} ${period}`;
 };
+const getNextDateForDay = (dayName: string) => {
+  const dayNumbers: Record<string, number> = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+  };
 
+  const today = new Date();
+  const targetDay = dayNumbers[dayName];
+  const daysUntilTarget = (targetDay - today.getDay() + 7) % 7;
+
+  const appointmentDate = new Date(today);
+  appointmentDate.setDate(today.getDate() + daysUntilTarget);
+
+  const year = appointmentDate.getFullYear();
+  const month = String(appointmentDate.getMonth() + 1).padStart(2, "0");
+  const day = String(appointmentDate.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const formatBookingDate = (dateString: string) =>
+  new Date(`${dateString}T12:00:00`).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
 export default function BarberProfilePage() {
   const [showBooking, setShowBooking] = useState(false);
     const [selectedService, setSelectedService] = useState("Haircut");
@@ -272,7 +302,7 @@ const bookedBarber = searchParams.get("barber");
   }
 }, [bookedStyle]);
 const availabilityByDay = dbAvailability.reduce((groups, slot) => {
-  const day = slot.day;
+const day = getNextDateForDay(slot.day);
 
   if (!groups[day]) {
     groups[day] = [];
@@ -473,7 +503,9 @@ return (
 
   return (
     <div key={day}>
-      <h3 className="mb-3 text-lg font-semibold">{day}</h3>
+  <h3 className="mb-3 text-lg font-semibold">
+  {formatBookingDate(day)}
+</h3>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {daySlots.map((slot) => {
@@ -665,7 +697,7 @@ return (
         : "border-white/10 bg-black hover:border-white/20"
     }`}
   >
-    {day}
+   {formatBookingDate(day)}
   </button>
 ))}
   </div>
@@ -750,7 +782,7 @@ const isBooked = (bookedTimesByDay[selectedDate] ?? []).some(
 
         <div className="flex justify-between">
           <span className="text-zinc-400">Date</span>
-          <span className="font-semibold">{selectedDate}</span>
+          <span className="font-semibold">{formatBookingDate(selectedDate)}</span>
         </div>
 
         <div className="flex justify-between">
@@ -797,7 +829,7 @@ const isBooked = (bookedTimesByDay[selectedDate] ?? []).some(
           {bookedBarber || profileName}
         </span>{" "}
         is booked for{" "}
-        <span className="font-bold text-white">{selectedDate}</span>{" "}
+        <span className="font-bold text-white">{formatBookingDate(selectedDate)}</span>{" "}
         at{" "}
         <span className="font-bold text-white">{selectedTime}</span>.
       </p>

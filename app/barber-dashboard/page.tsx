@@ -1,7 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "../../utils/supabase/client";
+const formatBookingDate = (dateString: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return dateString;
+  }
 
+  return new Date(`${dateString}T12:00:00`).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+};
 export default function BarberDashboard() {
     const [barberName, setBarberName] = useState("");
 const [bookings, setBookings] = useState<any[]>([]);
@@ -1047,7 +1057,7 @@ const earnings = activeBookings.reduce(
         </p>
 
         <p className="mt-2 text-zinc-400">
-          Date: {booking.date}
+     Date: {formatBookingDate(booking.date)}
         </p>
 
         <p className="text-zinc-400">
