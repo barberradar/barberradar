@@ -246,7 +246,11 @@ const activeBookings = bookings
                 key={index}
                 className="rounded-2xl border border-white/10 bg-zinc-950 p-6"
               >
-                <p className="text-sm uppercase tracking-widest text-red-400">
+      <p
+  className={`text-sm uppercase tracking-widest ${
+    booking.status === "confirmed" ? "text-green-400" : "text-red-400"
+  }`}
+>
                 {booking.status === "confirmed"
   ? "✓ Confirmed"
   : "Waiting for barber confirmation"}
