@@ -587,7 +587,13 @@ const reopenSlot = async (bookingId: number) => {
   )
 );
 };
-const activeBookings = bookings
+const activeBookings = bookings.filter(
+  (booking) =>
+    booking.status !== "cancelled" &&
+    booking.status !== "reopened"
+);
+
+const upcomingBookings = bookings
 .filter((booking) => {
   if (
     booking.status === "cancelled" ||
@@ -630,7 +636,7 @@ const activeBookings = bookings
     );
   });
 
-const upcomingCount = activeBookings.length;
+const upcomingCount = upcomingBookings.length;
 const today = new Date();
 
 const todayLabel = `${today.getFullYear()}-${String(
@@ -1119,7 +1125,7 @@ const earnings = activeBookings
   </p>
 ) : (
   <div className="mt-4 space-y-4">
- {activeBookings.map((booking) => (
+ {upcomingBookings.map((booking) => (
       <div
         key={booking.id}
         className="rounded-xl border border-zinc-800 bg-black p-4"
