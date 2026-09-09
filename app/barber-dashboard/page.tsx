@@ -588,11 +588,34 @@ const reopenSlot = async (bookingId: number) => {
 );
 };
 const activeBookings = bookings
-  .filter(
-    (booking) =>
-      booking.status !== "cancelled" &&
-      booking.status !== "reopened"
-  )
+.filter((booking) => {
+  if (
+    booking.status === "cancelled" ||
+    booking.status === "reopened"
+  ) {
+    return false;
+  }
+
+  const hasRealDate = /^\d{4}-\d{2}-\d{2}$/.test(booking.date);
+  if (!hasRealDate) return true;
+
+  const now = new Date();
+  const todayLabel = `${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  if (booking.date < todayLabel) return false;
+
+  if (
+    booking.date === todayLabel &&
+    timeToMinutes(booking.time) <= currentMinutes
+  ) {
+    return false;
+  }
+
+  return true;
+})
   .sort((bookingA: any, bookingB: any) => {
     const dateA = /^\d{4}-\d{2}-\d{2}$/.test(bookingA.date)
       ? bookingA.date
