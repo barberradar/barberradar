@@ -73,6 +73,33 @@ export default function NotificationBell() {
       }))
     );
   };
+  const clearNotifications = async () => {
+  const confirmed = window.confirm(
+    "Are you sure you want to clear all notifications?"
+  );
+
+  if (!confirmed) return;
+
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("notifications")
+    .delete()
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error clearing notifications:", error);
+    return;
+  }
+
+  setNotifications([]);
+};
 
   if (!isLoggedIn) return null;
 
@@ -99,9 +126,19 @@ export default function NotificationBell() {
 
       {showNotifications && (
     <div className="absolute right-0 top-full z-50 mt-3 max-h-[70vh] w-80 overflow-y-auto rounded-2xl border border-white/10 bg-zinc-950 p-4 shadow-xl">
-          <p className="mb-3 text-sm font-bold text-white">
-            Notifications
-          </p>
+      <div className="mb-3 flex items-center justify-between">
+  <p className="text-sm font-bold text-white">Notifications</p>
+
+  {notifications.length > 0 && (
+    <button
+      type="button"
+      onClick={clearNotifications}
+      className="text-xs font-semibold text-red-400 hover:text-red-300"
+    >
+      Clear
+    </button>
+  )}
+</div>
 
           {notifications.length === 0 ? (
             <p className="text-sm text-zinc-400">
