@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../../utils/supabase/client";
 
-export default function NotificationBell() {
+export default function NotificationBell({
+  showBookingsLink = true,
+}: {
+  showBookingsLink?: boolean;
+}) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -117,12 +121,14 @@ export default function NotificationBell() {
           </span>
         )}
       </button>
-      <button
-  onClick={() => (window.location.href = "/bookings")}
-  className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold whitespace-nowrap"
->
-  My Bookings
-</button>
+ {showBookingsLink && (
+  <button
+    onClick={() => (window.location.href = "/bookings")}
+    className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold whitespace-nowrap"
+  >
+    My Bookings
+  </button>
+)}
 
       {showNotifications && (
     <div className="absolute right-0 top-full z-50 mt-3 max-h-[70vh] w-80 overflow-y-auto rounded-2xl border border-white/10 bg-zinc-950 p-4 shadow-xl">

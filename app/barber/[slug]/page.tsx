@@ -101,6 +101,7 @@ export default function BarberProfilePage() {
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [bookingConfirmed, setBookingConfirmed] = useState(false);
    const [dbProfile, setDbProfile] = useState<{
+    owner_id: string;
   name: string;
   location: string | null;
   specialty: string | null;
@@ -126,7 +127,7 @@ useEffect(() => {
 
     const { data, error } = await supabase
       .from("barbers")
-    .select("name, location, specialty")
+  .select("owner_id, name, location, specialty")
       .eq("slug", slug)
       .maybeSingle();
       console.log("BARBER PROFILE DEBUG:", { slug, data, error });
@@ -258,6 +259,27 @@ if (error) {
 
   alert("Something went wrong while booking. Please try again.");
   return;
+}
+
+if (dbProfile?.owner_id) {
+  const { error: notificationError } = await supabase
+    .from("notifications")
+    .insert([
+      {
+        user_id: dbProfile.owner_id,
+        type: "new_booking",
+        message: `New booking: ${booking.service} with ${
+          booking.customer_name
+        } on ${formatBookingDate(booking.date)} at ${booking.time}.`,
+      },
+    ]);
+
+  if (notificationError) {
+    console.error(
+      "Barber booking notification error:",
+      notificationError
+    );
+  }
 }
 
  setBookedTimesByDay((current) => ({

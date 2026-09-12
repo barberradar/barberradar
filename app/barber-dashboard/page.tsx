@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "../../utils/supabase/client";
+import NotificationBell from "../components/NotificationBell";
 const formatBookingDate = (dateString: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     return dateString;
@@ -693,6 +694,8 @@ const earnings = activeBookings
   >
     ← Home
   </a>
+
+<NotificationBell showBookingsLink={false} />
 
   <button
     onClick={signOut}
