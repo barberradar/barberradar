@@ -90,6 +90,16 @@ const cancelBooking = async (indexToRemove: number) => {
 
   const supabase = createClient();
 
+  const { data: barber, error: barberError } = await supabase
+  .from("barbers")
+  .select("owner_id")
+  .eq("slug", bookingToRemove.barber)
+  .maybeSingle();
+
+if (barberError) {
+  console.error("Error finding barber for cancellation:", barberError);
+}
+
   const { error } = await supabase
     .from("bookings")
     .delete()
@@ -99,6 +109,29 @@ const cancelBooking = async (indexToRemove: number) => {
     console.error("Error cancelling booking:", error);
     return;
   }
+
+  if (barber?.owner_id) {
+  const { error: notificationError } = await supabase
+    .from("notifications")
+    .insert([
+      {
+        user_id: barber.owner_id,
+        type: "customer_cancelled",
+        message: `Customer cancellation: ${
+          bookingToRemove.service
+        } on ${formatBookingDate(bookingToRemove.date)} at ${
+          bookingToRemove.time
+        } was cancelled by the customer.`,
+      },
+    ]);
+
+  if (notificationError) {
+    console.error(
+      "Barber cancellation notification error:",
+      notificationError
+    );
+  }
+}
 
   setBookings(
     bookings.filter((booking) => booking.id !== bookingToRemove.id)
