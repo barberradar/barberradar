@@ -90,11 +90,11 @@ useEffect(() => {
       .eq("owner_id", user.id)
       .single();
 
-    if (barberError || !barber) {
-      console.error("Barber profile error:", barberError);
-      setLoading(false);
-      return;
-    }
+   if (barberError || !barber) {
+  console.error("Barber profile error:", barberError);
+  window.location.href = "/";
+  return;
+}
 
     setBarberName(barber.name);
     const { data: serviceData, error: serviceError } = await supabase
