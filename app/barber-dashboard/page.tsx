@@ -540,46 +540,6 @@ const updateBookingStatus = async (
     return;
   }
 
-  if (newStatus === "cancelled" && booking?.user_id) {
-    const { error: notificationError } = await supabase
-      .from("notifications")
-      .insert([
-        {
-          user_id: booking.user_id,
-          type: "booking_cancelled",
-          message: `Your appointment with ${barberName} for ${booking.service} on ${formatBookingDate(booking.date)} at ${booking.time} was cancelled by the barber.`,
-        },
-      ]);
-
-    if (notificationError) {
-      console.error(
-        "Cancellation notification error:",
-        notificationError
-      );
-    }
-  }
-if (newStatus === "confirmed" && booking?.user_id) {
-  const { error: notificationError } = await supabase
-    .from("notifications")
-    .insert([
-      {
-        user_id: booking.user_id,
-        type: "booking_confirmed",
-        message: `Your appointment with ${barberName} for ${
-          booking.service
-        } on ${formatBookingDate(booking.date)} at ${
-          booking.time
-        } was confirmed.`,
-      },
-    ]);
-
-  if (notificationError) {
-    console.error(
-      "Confirmation notification error:",
-      notificationError
-    );
-  }
-}
 
   setBookings((current) =>
     current.map((booking) =>

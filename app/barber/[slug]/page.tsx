@@ -261,26 +261,7 @@ if (error) {
   return;
 }
 
-if (dbProfile?.owner_id) {
-  const { error: notificationError } = await supabase
-    .from("notifications")
-    .insert([
-      {
-        user_id: dbProfile.owner_id,
-        type: "new_booking",
-        message: `New booking: ${booking.service} with ${
-          booking.customer_name
-        } on ${formatBookingDate(booking.date)} at ${booking.time}.`,
-      },
-    ]);
 
-  if (notificationError) {
-    console.error(
-      "Barber booking notification error:",
-      notificationError
-    );
-  }
-}
 
  setBookedTimesByDay((current) => ({
   ...current,
