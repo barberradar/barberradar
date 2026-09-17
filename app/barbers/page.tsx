@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
-export default function BarbersPage() {
+function BarbersContent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -216,5 +216,13 @@ const filteredBarbers = barbers.filter((barber) => {
         )}
       </section>
     </main>
+  );
+}
+
+export default function BarbersPage() {
+  return (
+    <Suspense fallback={<div>Loading barbers...</div>}>
+      <BarbersContent />
+    </Suspense>
   );
 }
