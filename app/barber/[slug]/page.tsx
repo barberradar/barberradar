@@ -336,6 +336,7 @@ const profileLocation = dbProfile?.location || profile?.city || "";
 const bookedStyle = searchParams.get("style");
 const bookedBarber = searchParams.get("barber");
  useEffect(() => {
+  if (searchParams.get("resumeBooking") === "true") return;
   const style = bookedStyle?.toLowerCase() ?? "";
 
   if (style.includes("beard")) {
