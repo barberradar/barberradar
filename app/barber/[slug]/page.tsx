@@ -191,7 +191,18 @@ useEffect(() => {
 }, [searchParams]);
 
 const saveBooking = async () => {
- const supabase = createClient();
+  if (
+    !selectedDate ||
+    !selectedTime ||
+    isPastTimeSlot(selectedDate, selectedTime)
+  ) {
+    alert("That appointment time has already passed. Please choose another time.");
+    setSelectedTime("");
+    setShowConfirmation(false);
+    return;
+  }
+
+  const supabase = createClient();
 
 const {
   data: { user },
@@ -765,28 +776,30 @@ return (
 
   <div className="grid grid-cols-3 gap-3">
 {(availabilityByDay[selectedDate] ?? []).map((slot: any) => {
-  const time = slot.time;
+const time = slot.time;
 const isBooked = (bookedTimesByDay[selectedDate] ?? []).some(
   (bookedTime) => normalizeTime(bookedTime) === normalizeTime(time)
 );
+const isPast = isPastTimeSlot(selectedDate, time);
+const isUnavailable = isBooked || isPast;
 
-  return (
-    <button
-      key={time}
-      type="button"
-      disabled={isBooked}
-      onClick={() => !isBooked && setSelectedTime(time)}
-      className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
-        isBooked
-          ? "cursor-not-allowed border-white/5 bg-white/5 text-zinc-600"
-          : selectedTime === time
-          ? "border-red-500 bg-red-500/10"
-          : "border-white/10 bg-black hover:border-white/20"
-      }`}
-    >
-      {isBooked ? "Booked" : time}
-    </button>
-  );
+return (
+  <button
+    key={time}
+    type="button"
+    disabled={isUnavailable}
+    onClick={() => !isUnavailable && setSelectedTime(time)}
+    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+      isUnavailable
+        ? "cursor-not-allowed border-white/5 bg-white/5 text-zinc-600"
+        : selectedTime === time
+        ? "border-red-500 bg-red-500/10"
+        : "border-white/10 bg-black hover:border-white/20"
+    }`}
+  >
+    {isBooked ? "Booked" : isPast ? "Past" : time}
+  </button>
+);
 })}
   </div>
 </div>
