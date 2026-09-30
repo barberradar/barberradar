@@ -185,6 +185,22 @@ const activeBookings = bookings
     );
   });
 
+  const pastBookings = bookings
+  .filter((booking) => !activeBookings.includes(booking))
+  .sort((bookingA, bookingB) => {
+    const bookingAHasRealDate = /^\d{4}-\d{2}-\d{2}$/.test(bookingA.date);
+    const bookingBHasRealDate = /^\d{4}-\d{2}-\d{2}$/.test(bookingB.date);
+
+    if (!bookingAHasRealDate && !bookingBHasRealDate) return 0;
+    if (!bookingAHasRealDate) return 1;
+    if (!bookingBHasRealDate) return -1;
+
+    return (
+      bookingB.date.localeCompare(bookingA.date) ||
+      timeToMinutes(bookingB.time) - timeToMinutes(bookingA.time)
+    );
+  });
+
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-4xl px-6 py-12">
@@ -314,6 +330,59 @@ const activeBookings = bookings
             ))
           )}
         </div>
+        <div className="mt-12">
+  <h2 className="text-2xl font-bold">Past Appointments</h2>
+  <p className="mt-1 text-zinc-400">
+    Your completed and canceled appointments.
+  </p>
+
+  {pastBookings.length === 0 ? (
+    <div className="mt-6 rounded-2xl border border-white/10 bg-zinc-950 p-6 text-zinc-400">
+      No past appointments yet.
+    </div>
+  ) : (
+    <div className="mt-6 space-y-4">
+      {pastBookings.map((booking, index) => (
+        <div
+          key={index}
+          className="rounded-2xl border border-white/10 bg-zinc-950 p-6"
+        >
+          <p className="text-sm uppercase tracking-widest text-zinc-500">
+            {booking.status === "cancelled" ||
+            booking.status === "reopened"
+              ? "Canceled"
+              : "Completed"}
+          </p>
+
+          <h3 className="mt-2 text-xl font-bold">
+            {booking.barber
+              .split("-")
+              .map(
+                (word) =>
+                  word.charAt(0).toUpperCase() + word.slice(1)
+              )
+              .join(" ")}
+          </h3>
+
+          <div className="mt-4 space-y-2 text-zinc-300">
+            <p>
+              <span className="text-zinc-500">Service:</span>{" "}
+              {booking.service}
+            </p>
+            <p>
+              <span className="text-zinc-500">Date:</span>{" "}
+              {formatBookingDate(booking.date)}
+            </p>
+            <p>
+              <span className="text-zinc-500">Time:</span>{" "}
+              {booking.time}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
       </div>
     </main>
   );
