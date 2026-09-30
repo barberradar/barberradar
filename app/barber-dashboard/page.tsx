@@ -632,7 +632,7 @@ const todaysAppointments = activeBookings.filter(
 
 const todayCount = todaysAppointments.length;
 
-const earnings = activeBookings
+const earnings = bookings
   .filter((booking) => booking.status === "confirmed")
   .reduce(
     (total, booking) => total + Number(booking.price || 0),
