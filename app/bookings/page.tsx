@@ -85,25 +85,25 @@ const { data, error } = await supabase
 }, []);
 
 
-const cancelBooking = async (indexToRemove: number) => {
-  const bookingToRemove = bookings[indexToRemove];
-
+const cancelBooking = async (bookingId: string | number) => {
   const supabase = createClient();
-
 
   const { error } = await supabase
     .from("bookings")
-    .delete()
-    .eq("id", bookingToRemove.id);
+    .update({ status: "cancelled" })
+    .eq("id", bookingId);
 
   if (error) {
     console.error("Error cancelling booking:", error);
     return;
   }
 
-
-  setBookings(
-    bookings.filter((booking) => booking.id !== bookingToRemove.id)
+  setBookings((current) =>
+    current.map((booking) =>
+      booking.id === bookingId
+        ? { ...booking, status: "cancelled" }
+        : booking
+    )
   );
 };
 
@@ -321,7 +321,7 @@ const activeBookings = bookings
                   </p>
                 </div>
                 <button
-  onClick={() => cancelBooking(index)}
+onClick={() => cancelBooking(booking.id)}
   className="mt-5 w-full rounded-xl border border-red-500/40 px-4 py-3 font-bold text-red-400 transition hover:bg-red-500/10"
 >
   Cancel Appointment
