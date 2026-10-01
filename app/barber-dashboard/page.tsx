@@ -628,7 +628,18 @@ const today = new Date();
 const todayLabel = `${today.getFullYear()}-${String(
   today.getMonth() + 1
 ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+const canReopenBooking = (booking: any) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(booking.date)) return false;
 
+  const currentMinutes =
+    today.getHours() * 60 + today.getMinutes();
+
+  return (
+    booking.date > todayLabel ||
+    (booking.date === todayLabel &&
+      timeToMinutes(booking.time) > currentMinutes)
+  );
+};
 const todaysAppointments = activeBookings.filter(
   (booking) => booking.date === todayLabel
 );
@@ -1232,7 +1243,8 @@ const earnings = bookings
             Time: {booking.time}
           </p>
 
-          {booking.status === "cancelled" && (
+        {booking.status === "cancelled" &&
+  canReopenBooking(booking) && (
             <button
               onClick={() => reopenSlot(booking.id)}
               className="mt-4 rounded-xl border border-yellow-500 px-4 py-2 font-semibold text-yellow-400"
