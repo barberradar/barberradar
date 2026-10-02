@@ -87,6 +87,9 @@ const { data, error } = await supabase
 
 const cancelBooking = async (bookingId: string | number) => {
   const supabase = createClient();
+  const bookingToCancel = bookings.find(
+    (booking) => booking.id === bookingId
+  );
 
   const { error } = await supabase
     .from("bookings")
@@ -96,6 +99,35 @@ const cancelBooking = async (bookingId: string | number) => {
   if (error) {
     console.error("Error cancelling booking:", error);
     return;
+  }
+
+  if (bookingToCancel) {
+    const { data: barberData, error: barberError } = await supabase
+      .from("barbers")
+      .select("owner_id")
+      .eq("slug", bookingToCancel.barber)
+      .maybeSingle();
+
+    if (barberError) {
+      console.error("Error finding barber:", barberError);
+    } else if (barberData?.owner_id) {
+      const { error: notificationError } = await supabase
+        .from("notifications")
+        .insert({
+          user_id: barberData.owner_id,
+          message: `Customer cancellation: ${bookingToCancel.service} on ${formatBookingDate(
+            bookingToCancel.date
+          )} at ${bookingToCancel.time} was cancelled by the customer.`,
+          read: false,
+        });
+
+      if (notificationError) {
+        console.error(
+          "Error creating cancellation notification:",
+          notificationError
+        );
+      }
+    }
   }
 
   setBookings((current) =>
