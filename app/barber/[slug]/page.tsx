@@ -886,11 +886,11 @@ return (
       <div className="text-5xl">✅</div>
 
       <p className="mt-4 text-sm font-bold uppercase tracking-widest text-red-400">
-        Booking Confirmed
+      Booking Request Sent
       </p>
 
       <h2 className="mt-2 text-3xl font-black">
-        You're all set!
+  Awaiting barber confirmation
       </h2>
 
       <p className="mt-4 text-zinc-400">
@@ -898,7 +898,7 @@ return (
         <span className="font-bold text-white">
           {bookedBarber || profileName}
         </span>{" "}
-        is booked for{" "}
+     was requested for{" "}
         <span className="font-bold text-white">{formatBookingDate(selectedDate)}</span>{" "}
         at{" "}
         <span className="font-bold text-white">{selectedTime}</span>.
