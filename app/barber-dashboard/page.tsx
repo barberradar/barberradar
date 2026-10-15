@@ -647,7 +647,7 @@ const todaysAppointments = activeBookings.filter(
 const todayCount = todaysAppointments.length;
 
 const earnings = bookings
-  .filter((booking) => booking.status === "confirmed")
+  .filter((booking) => booking.status === "completed")
   .reduce(
     (total, booking) => total + Number(booking.price || 0),
     0
