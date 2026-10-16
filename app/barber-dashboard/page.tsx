@@ -580,7 +580,7 @@ const upcomingBookings = bookings
 .filter((booking) => {
   if (
     booking.status === "cancelled" ||
-    booking.status === "reopened"
+    booking.status === "reopened" || booking.status === "completed"
   ) {
     return false;
   }
