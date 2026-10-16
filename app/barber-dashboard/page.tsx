@@ -1170,9 +1170,9 @@ const earnings = bookings
 ) : (
   <div className="mt-4 flex flex-wrap gap-3">
     {booking.status === "confirmed" ? (
-      <span className="rounded-xl border border-green-600 px-4 py-2 font-semibold text-green-400">
+<div className="flex flex-wrap gap-2">      <span className="rounded-xl border border-green-600 px-4 py-2 font-semibold text-green-400">
         ✓ Confirmed
-      </span>
+      </span><button onClick={() => updateBookingStatus(booking.id, "completed")} className="rounded-xl border border-blue-600 px-4 py-2 font-semibold text-blue-400">Mark Completed</button></div>
     ) : (
       <button
         onClick={() => updateBookingStatus(booking.id, "confirmed")}
