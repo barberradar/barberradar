@@ -814,8 +814,15 @@ return (
   </button>
 
   <button
+  disabled={
+    !selectedService || !selectedDate || !selectedTime ||
+    isPastTimeSlot(selectedDate, selectedTime) ||
+    (bookedTimesByDay[selectedDate] ?? []).some(
+      (time) => normalizeTime(time) === normalizeTime(selectedTime)
+    )
+  }
   onClick={() => setShowConfirmation(true)}
-  className="flex-1 rounded-xl bg-red-600 py-3 font-bold"
+  className="flex-1 rounded-xl bg-red-600 py-3 font-bold disabled:opacity-40 disabled:cursor-not-allowed"
 >
   Continue
 </button>
