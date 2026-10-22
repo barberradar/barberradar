@@ -153,7 +153,9 @@ const activeBookings = bookings
 .filter((booking) => {
   if (
     booking.status === "cancelled" ||
-    booking.status === "reopened"
+booking.status === "reopened" ||
+booking.status === "completed" ||
+booking.status === "no_show"
   ) {
     return false;
   }
@@ -352,7 +354,11 @@ onClick={() => cancelBooking(booking.id)}
             {booking.status === "cancelled" ||
             booking.status === "reopened"
               ? "Canceled"
-              : "Completed"}
+: booking.status === "no_show"
+  ? "No-show"
+  : booking.status === "completed"
+    ? "Completed"
+    : "Awaiting outcome"}
           </p>
 
           <h3 className="mt-2 text-xl font-bold">

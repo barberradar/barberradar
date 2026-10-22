@@ -520,6 +520,17 @@ const signOut = async () => {
 
   window.location.href = "/";
 };
+const canMarkNoShow = (booking: any) => {
+  if (booking.status !== "confirmed") return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(booking.date)) return false;
+
+  const minutes = timeToMinutes(booking.time);
+  if (minutes === Number.MAX_SAFE_INTEGER) return false;
+
+  const deadline = new Date(`${booking.date}T00:00:00`);
+  deadline.setMinutes(minutes + 15);
+  return Date.now() >= deadline.getTime();
+};
 const updateBookingStatus = async (
   bookingId: number,
   newStatus: string
@@ -529,7 +540,15 @@ const updateBookingStatus = async (
   const booking = bookings.find(
     (booking) => booking.id === bookingId
   );
+if (!booking) return;
 
+if (newStatus === "no_show") {
+  if (!canMarkNoShow(booking)) {
+    alert("Wait until 15 minutes after the appointment starts.");
+    return;
+  }
+  if (!window.confirm("Mark this appointment as a no-show?")) return;
+}
   const { error } = await supabase
     .from("bookings")
     .update({ status: newStatus })
@@ -572,15 +591,18 @@ const reopenSlot = async (bookingId: number) => {
 };
 const activeBookings = bookings.filter(
   (booking) =>
-    booking.status !== "cancelled" &&
-    booking.status !== "reopened"
+ booking.status !== "cancelled" &&
+booking.status !== "reopened" &&
+booking.status !== "no_show"
 );
 
 const upcomingBookings = bookings
 .filter((booking) => {
   if (
     booking.status === "cancelled" ||
-    booking.status === "reopened" || booking.status === "completed"
+booking.status === "reopened" ||
+booking.status === "completed" ||
+booking.status === "no_show"
   ) {
     return false;
   }
@@ -1216,7 +1238,11 @@ const earnings = bookings
             {booking.status === "cancelled" ||
             booking.status === "reopened"
               ? "Canceled"
-              : "Completed"}
+: booking.status === "no_show"
+  ? "No-show"
+  : booking.status === "completed"
+    ? "Completed"
+    : "Awaiting outcome"}
           </p>
 
           <p className="mt-2 font-bold text-white">
@@ -1242,7 +1268,22 @@ const earnings = bookings
           <p className="text-zinc-400">
             Time: {booking.time}
           </p>
-
+     {booking.status === "confirmed" && (
+  <button
+    onClick={() => updateBookingStatus(booking.id, "completed")}
+    className="mt-4 mr-3 rounded-xl border border-blue-600 px-4 py-2 font-semibold text-blue-400"
+  >
+    Mark Completed
+  </button>
+)}     
+{canMarkNoShow(booking) && (
+  <button
+    onClick={() => updateBookingStatus(booking.id, "no_show")}
+    className="mt-4 rounded-xl border border-red-600 px-4 py-2 font-semibold text-red-400"
+  >
+    Mark No-show
+  </button>
+)}
         {booking.status === "cancelled" &&
   canReopenBooking(booking) && (
             <button
