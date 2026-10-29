@@ -9,6 +9,11 @@ export default function EditBarberProfilePage() {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [specialty, setSpecialty] = useState("");
+  const [slug, setSlug] = useState("");
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+const [headerImageUrl, setHeaderImageUrl] = useState("");
+const [profileFile, setProfileFile] = useState<File | null>(null);
+const [headerFile, setHeaderFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -26,7 +31,7 @@ export default function EditBarberProfilePage() {
 
       const { data: barber, error } = await supabase
         .from("barbers")
-.select("name, location, specialty")
+.select("slug, name, location, specialty, profile_image_url, header_image_url")
         .eq("owner_id", user.id)
         .maybeSingle();
 
@@ -38,11 +43,33 @@ export default function EditBarberProfilePage() {
       setName(barber.name);
       setLocation(barber.location || "");
       setSpecialty(barber.specialty || "");
+      setSlug(barber.slug);
+      setProfileImageUrl(barber.profile_image_url || "");
+setHeaderImageUrl(barber.header_image_url || "");
       setLoading(false);
     };
 
     loadProfile();
   }, []);
+const uploadImage = async (
+  file: File,
+  imageType: "profile" | "header"
+) => {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${slug}/${imageType}-${Date.now()}.${fileExt}`;
+
+  const { error } = await supabase.storage
+    .from("barber-portfolio")
+    .upload(fileName, file);
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from("barber-portfolio")
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+};
 
   const saveProfile = async () => {
     if (!name.trim()) {
@@ -61,6 +88,26 @@ export default function EditBarberProfilePage() {
       window.location.href = "/login?role=barber";
       return;
     }
+let nextProfileImageUrl = profileImageUrl;
+let nextHeaderImageUrl = headerImageUrl;
+
+try {
+  if (profileFile) {
+    nextProfileImageUrl = await uploadImage(profileFile, "profile");
+  }
+
+  if (headerFile) {
+    nextHeaderImageUrl = await uploadImage(headerFile, "header");
+  }
+} catch (uploadError) {
+  setMessage(
+    uploadError instanceof Error
+      ? uploadError.message
+      : "Image upload failed."
+  );
+  setSaving(false);
+  return;
+}
 
     const { error } = await supabase
       .from("barbers")
@@ -68,6 +115,8 @@ export default function EditBarberProfilePage() {
   name: name.trim(),
   location: location.trim() || null,
   specialty: specialty.trim() || null,
+  profile_image_url: nextProfileImageUrl || null,
+header_image_url: nextHeaderImageUrl || null,
 })
       .eq("owner_id", user.id);
 
@@ -75,9 +124,12 @@ export default function EditBarberProfilePage() {
       setMessage(error.message);
       setSaving(false);
       return;
-    }
-
-    setMessage("Profile saved!");
+}
+ setProfileImageUrl(nextProfileImageUrl);
+setHeaderImageUrl(nextHeaderImageUrl);
+setProfileFile(null);
+setHeaderFile(null);
+setMessage("Profile saved!");
     setSaving(false);
   };
 
@@ -146,6 +198,43 @@ export default function EditBarberProfilePage() {
     onChange={(e) => setSpecialty(e.target.value)}
     placeholder="What are you known for?"
     className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white outline-none focus:border-red-500"
+  />
+</div>
+<div className="mt-6">
+  <label className="text-sm font-semibold">Profile Photo</label>
+
+  {profileImageUrl && (
+    <img
+      src={profileImageUrl}
+      alt="Current profile"
+      className="mt-3 h-24 w-24 rounded-full object-cover"
+    />
+  )}
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => setProfileFile(e.target.files?.[0] || null)}
+    className="mt-2 block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white"
+  />
+</div>
+
+<div className="mt-6">
+  <label className="text-sm font-semibold">Header Image</label>
+
+  {headerImageUrl && (
+    <img
+      src={headerImageUrl}
+      alt="Current header"
+      className="mt-3 h-32 w-full rounded-xl object-cover"
+    />
+  )}
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => setHeaderFile(e.target.files?.[0] || null)}
+    className="mt-2 block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-white"
   />
 </div>
         <button

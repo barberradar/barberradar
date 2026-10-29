@@ -105,6 +105,8 @@ export default function BarberProfilePage() {
   name: string;
   location: string | null;
   specialty: string | null;
+  profile_image_url: string | null;
+header_image_url: string | null;
 } | null>(null);
 const [profileLoading, setProfileLoading] = useState(true);
 const [dbServices, setDbServices] = useState<
@@ -127,7 +129,7 @@ useEffect(() => {
 
     const { data, error } = await supabase
       .from("barbers")
-  .select("owner_id, name, location, specialty")
+ .select("owner_id, name, location, specialty, profile_image_url, header_image_url")
       .eq("slug", slug)
       .maybeSingle();
       console.log("BARBER PROFILE DEBUG:", { slug, data, error });
@@ -448,13 +450,29 @@ return (
   </a>
 </div>
       {/* Cover */}
-      <div className="h-72 w-full bg-zinc-900"></div>
+{dbProfile?.header_image_url ? (
+  <img
+    src={dbProfile.header_image_url}
+    alt={`${profileName} header`}
+    className="h-72 w-full object-cover"
+  />
+) : (
+  <div className="h-72 w-full bg-zinc-900"></div>
+)}
 
       <div className="mx-auto max-w-5xl px-6">
         {/* Header */}
   <div className="-mt-16 flex items-end gap-3 sm:gap-6">
  <div className="flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-full border-4 border-black bg-zinc-800 text-5xl">
-            💈
+{dbProfile?.profile_image_url ? (
+  <img
+    src={dbProfile.profile_image_url}
+    alt={`${profileName} profile`}
+    className="h-full w-full rounded-full object-cover"
+  />
+) : (
+  "💈"
+)}
           </div>
 
           <div className="pb-4">
