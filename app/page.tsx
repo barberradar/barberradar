@@ -215,9 +215,17 @@ onClick={() => (window.location.href = "/login?role=barber")}
   onClick={() => (window.location.href = `/barber/${barber.slug}`)}
   className="cursor-pointer rounded-3xl border border-white/10 bg-zinc-950 p-6 transition hover:border-white/20"
 >
-              <div className="mb-6 flex h-40 items-center justify-center rounded-2xl bg-zinc-900 text-6xl">
-                💈
-              </div>
+  <div className="mb-6 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-zinc-900 text-6xl">
+  {barber.profile_image_url ? (
+    <img
+      src={barber.profile_image_url}
+      alt={`${barber.name} profile`}
+      className="h-full w-full object-contain"
+    />
+  ) : (
+    "💈"
+  )}
+</div>
 
               <div className="flex items-start justify-between gap-4">
                 <div>
