@@ -1293,7 +1293,7 @@ const earnings = bookings
     Mark No-show
   </button>
 )}
-        {booking.status === "cancelled" &&
+{booking.status === "cancelled" && booking.slot_closed === true &&
   canReopenBooking(booking) && (
             <button
               onClick={() => reopenSlot(booking.id)}
