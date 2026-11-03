@@ -237,6 +237,7 @@ const selectedPrice = Number(
 const booking = {
   barber: slug,
   service: selectedService,
+  look_title: bookedStyle?.trim() || null,
   date: selectedDate,
   time: selectedTime,
   price: selectedPrice,

@@ -1154,6 +1154,11 @@ const earnings = bookings
         <p className="font-bold text-white">
           {booking.service}
         </p>
+        {booking.look_title && (
+  <p className="mt-1 text-sm text-red-400">
+    Requested look: {booking.look_title}
+  </p>
+)}
         {booking.customer_name && (
   <div className="mt-2">
     <p className="font-semibold text-white">
@@ -1248,7 +1253,11 @@ const earnings = bookings
           <p className="mt-2 font-bold text-white">
             {booking.service}
           </p>
-
+{booking.look_title && (
+  <p className="mt-1 text-sm text-red-400">
+    Requested look: {booking.look_title}
+  </p>
+)}
           {booking.customer_name && (
             <p className="mt-2 text-zinc-300">
               Customer: {booking.customer_name}
