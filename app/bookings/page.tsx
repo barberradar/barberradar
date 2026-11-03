@@ -7,6 +7,7 @@ type Booking = {
   id: number;
   barber: string;
   service: string;
+  look_title?: string | null;
   date: string;
   time: string;
   status: string;
@@ -312,7 +313,11 @@ booking.status === "no_show"
                     <span className="text-zinc-500">Service:</span>{" "}
                     {booking.service}
                   </p>
-
+{booking.look_title && (
+  <p className="text-red-400">
+    Requested look: {booking.look_title}
+  </p>
+)}
                   <p>
                     <span className="text-zinc-500">Date:</span>{" "}
                {formatBookingDate(booking.date)}
@@ -376,6 +381,11 @@ onClick={() => cancelBooking(booking.id)}
               <span className="text-zinc-500">Service:</span>{" "}
               {booking.service}
             </p>
+            {booking.look_title && (
+  <p className="text-red-400">
+    Requested look: {booking.look_title}
+  </p>
+)}
             <p>
               <span className="text-zinc-500">Date:</span>{" "}
               {formatBookingDate(booking.date)}
