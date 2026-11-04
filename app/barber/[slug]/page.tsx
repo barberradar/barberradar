@@ -211,12 +211,13 @@ const {
 } = await supabase.auth.getUser();
 
 if (!user) {
-  const returnTo =
-    `/barber/${slug}` +
-    `?service=${encodeURIComponent(selectedService)}` +
-    `&date=${encodeURIComponent(selectedDate)}` +
-    `&time=${encodeURIComponent(selectedTime)}` +
-    `&resumeBooking=true`;
+ const returnTo =
+  `/barber/${slug}` +
+  `?service=${encodeURIComponent(selectedService)}` +
+  `&date=${encodeURIComponent(selectedDate)}` +
+  `&time=${encodeURIComponent(selectedTime)}` +
+  `&style=${encodeURIComponent(bookedStyle ?? "")}` +
+  `&resumeBooking=true`;
 
   window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
   return;
