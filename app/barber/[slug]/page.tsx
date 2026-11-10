@@ -464,7 +464,7 @@ return (
 
       <div className="mx-auto max-w-5xl px-6">
         {/* Header */}
-  <div className="-mt-16 flex items-end gap-3 sm:gap-6">
+ <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
  <div className="flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-full border-4 border-black bg-zinc-800 text-5xl">
 {dbProfile?.profile_image_url ? (
   <img
@@ -477,12 +477,12 @@ return (
 )}
           </div>
 
-          <div className="pb-4">
-<h1 className="text-4xl font-black sm:text-5xl">
+  <div className="min-w-0 pb-4">
+<h1 className="break-words text-3xl font-black sm:text-5xl">
   {bookedBarber || profileName}
 </h1>
 
- <p className="mt-2 whitespace-nowrap text-xs text-zinc-400 sm:text-base">
+<p className="mt-2 whitespace-normal break-words text-xs text-zinc-400 sm:text-base">
 ⭐ {profile?.rating || "New"} · {profileLocation} · ✅ Verified
             </p>
           </div>
