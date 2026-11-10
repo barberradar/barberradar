@@ -135,12 +135,12 @@ const homepageBarbers = dbBarbers.slice(0, 3);
 return (
     <main className="min-h-screen bg-black text-white">
       <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-5 px-6 py-5">
+<div className="mx-auto flex max-w-6xl flex-col items-start gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-black">
             BARBER<span className="text-red-500">RADAR</span>
           </h1>
 
-         <div className="flex items-center gap-3">
+<div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
   <NotificationBell />
 
   <button
