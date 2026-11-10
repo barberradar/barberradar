@@ -483,7 +483,7 @@ return (
 </h1>
 
 <p className="mt-2 whitespace-normal break-words text-xs text-zinc-400 sm:text-base">
-⭐ {profile?.rating || "New"} · {profileLocation} · ✅ Verified
+⭐ {profile?.rating || "New"} · {profileLocation} 
             </p>
           </div>
         </div>
