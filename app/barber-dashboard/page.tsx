@@ -892,19 +892,19 @@ const earnings = bookings
     </p>
   </div>
 
-  <div className="mt-6 grid gap-4 rounded-xl border border-zinc-800 bg-black p-4">
+<div className="mt-6 grid min-w-0 grid-cols-1 gap-4 rounded-xl border border-zinc-800 bg-black p-4">
     <input
       type="text"
       value={portfolioTitle}
       onChange={(e) => setPortfolioTitle(e.target.value)}
       placeholder="Style name (optional)"
-      className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+      className="min-w-0 w-full max-w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
     />
 
     <select
   value={portfolioService}
   onChange={(e) => setPortfolioService(e.target.value)}
-  className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
+  className="min-w-0 w-full max-w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white"
 >
   <option value="">Choose a service (optional)</option>
 
@@ -922,14 +922,14 @@ const earnings = bookings
       type="file"
       accept="image/*"
       onChange={(e) => setPortfolioFile(e.target.files?.[0] || null)}
-      className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-300"
+      className="min-w-0 w-full max-w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-300"
     />
 
     <button
       type="button"
       onClick={uploadPortfolioCut}
       disabled={!portfolioFile || uploadingPortfolio}
-      className="rounded-xl bg-red-500 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+      className="min-w-0 w-full max-w-full rounded-xl bg-red-500 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
     >
       {uploadingPortfolio ? "Uploading..." : "Upload Cut"}
     </button>
@@ -1096,13 +1096,13 @@ const earnings = bookings
         </button>
       </div>
     ) : (
-      <div className="flex items-center justify-between">
+<div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-semibold">{slot.day}</p>
           <p className="text-sm text-zinc-400">{slot.time}</p>
         </div>
 
-        <div className="flex items-center gap-3">
+     <div className="flex min-w-0 flex-wrap items-center gap-3">
           <span className="text-sm text-green-400">
             {slot.is_available ? "Available" : "Unavailable"}
           </span>
